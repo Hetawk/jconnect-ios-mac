@@ -1,0 +1,20 @@
+# Xcode
+DerivedData/
+build/
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# SwiftPM
+.build/
+Packages/
+
+# CocoaPods
+Pods/
+
+# Fastlane
+fastlane/report.xml
+
+# Secrets
+.env
+.env.*
