@@ -7,15 +7,25 @@
 
 import SwiftUI
 
+/// Main app coordinator handling authentication state and app flow
 struct ContentView: View {
+    @StateObject private var theme = CareSphereTheme.shared
+    @StateObject private var authService = AuthenticationService()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if authService.isAuthenticated {
+                MainAppView()
+            } else {
+                AuthenticationView()
+            }
         }
-        .padding()
+        .environmentObject(theme)
+        .environmentObject(authService)
+        .task {
+            // Check for saved authentication state on app launch
+            await authService.checkAuthenticationState()
+        }
     }
 }
 
