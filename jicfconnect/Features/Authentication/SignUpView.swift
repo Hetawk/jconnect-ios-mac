@@ -10,60 +10,79 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var showingError = false
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: CareSphereSpacing.lg) {
-                Text("Create Account")
-                    .font(CareSphereTypography.titleLarge)
-                    .foregroundColor(theme.colors.onBackground)
+        ZStack {
+            // Gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    theme.colors.primary.opacity(0.1),
+                    theme.colors.background,
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: CareSphereSpacing.xl) {
+                    // Header
+                    VStack(spacing: CareSphereSpacing.md) {
+                        Text("Create Account")
+                            .font(CareSphereTypography.displaySmall)
+                            .fontWeight(.bold)
+                            .foregroundColor(theme.colors.onBackground)
+
+                        Text("Join our community")
+                            .font(CareSphereTypography.bodyLarge)
+                            .foregroundColor(theme.colors.onSurface.opacity(0.7))
+                    }
                     .padding(.top, CareSphereSpacing.xl)
 
-                SignUpForm(
-                    fullName: $fullName,
-                    email: $email,
-                    password: $password,
-                    confirmPassword: $confirmPassword,
-                    isLoading: $isLoading,
-                    isFormValid: isFormValid,
-                    onSignUp: signUp
-                )
+                    SignUpForm(
+                        fullName: $fullName,
+                        email: $email,
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        showPassword: $showPassword,
+                        showConfirmPassword: $showConfirmPassword,
+                        isLoading: $isLoading,
+                        isFormValid: isFormValid,
+                        onSignUp: signUp
+                    )
+                }
+                .padding(.bottom, CareSphereSpacing.xl)
+            }
 
+            // Close button
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(theme.colors.onSurface.opacity(0.5))
+                    }
+                    .padding()
+                }
                 Spacer()
             }
-            .background(theme.colors.background)
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                    }
-                }
-            #else
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                    }
-                }
-            #endif
-            .alert("Registration Error", isPresented: $showingError) {
-                Button("OK") {}
-            } message: {
-                Text(errorMessage)
-            }
+        }
+        .alert("Registration Error", isPresented: $showingError) {
+            Button("OK") {}
+        } message: {
+            Text(errorMessage)
         }
     }
 
     private var isFormValid: Bool {
         !fullName.isEmpty && !email.isEmpty && !password.isEmpty && password == confirmPassword
-            && password.count >= 6
+            && password.count >= 8
     }
 
     private func signUp() {
@@ -89,51 +108,173 @@ struct SignUpView: View {
 
 /// Sign up form component
 struct SignUpForm: View {
+    @EnvironmentObject private var theme: CareSphereTheme
+
     @Binding var fullName: String
     @Binding var email: String
     @Binding var password: String
     @Binding var confirmPassword: String
+    @Binding var showPassword: Bool
+    @Binding var showConfirmPassword: Bool
     @Binding var isLoading: Bool
 
     let isFormValid: Bool
     let onSignUp: () -> Void
 
     var body: some View {
-        VStack(spacing: CareSphereSpacing.md) {
-            TextField("Full Name", text: $fullName)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.name)
+        VStack(spacing: CareSphereSpacing.lg) {
+            // Full name field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Full Name")
+                    .font(CareSphereTypography.bodySmall)
+                    .fontWeight(.medium)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.7))
 
-            TextField("Email", text: $email)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.emailAddress)
-                #if os(iOS)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                #endif
+                HStack {
+                    Image(systemName: "person")
+                        .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-            SecureField("Password", text: $password)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.newPassword)
-
-            SecureField("Confirm Password", text: $confirmPassword)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.newPassword)
-
-            if !password.isEmpty && password.count < 6 {
-                Text("Password must be at least 6 characters")
-                    .font(CareSphereTypography.caption)
-                    .foregroundColor(CareSphereColors.error)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    TextField("Enter your full name", text: $fullName)
+                        .textContentType(.name)
+                }
+                .padding()
+                .background(theme.colors.background)
+                .cornerRadius(CareSphereRadius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                        .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                )
             }
 
-            if !confirmPassword.isEmpty && password != confirmPassword {
-                Text("Passwords do not match")
-                    .font(CareSphereTypography.caption)
-                    .foregroundColor(CareSphereColors.error)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            // Email field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Email")
+                    .font(CareSphereTypography.bodySmall)
+                    .fontWeight(.medium)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.7))
+
+                HStack {
+                    Image(systemName: "envelope")
+                        .foregroundColor(theme.colors.onSurface.opacity(0.5))
+
+                    TextField("Enter your email", text: $email)
+                        .textContentType(.emailAddress)
+                        #if os(iOS)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                        #endif
+                }
+                .padding()
+                .background(theme.colors.background)
+                .cornerRadius(CareSphereRadius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                        .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                )
             }
 
+            // Password field with visibility toggle
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Password")
+                    .font(CareSphereTypography.bodySmall)
+                    .fontWeight(.medium)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.7))
+
+                HStack {
+                    Image(systemName: "lock")
+                        .foregroundColor(theme.colors.onSurface.opacity(0.5))
+
+                    if showPassword {
+                        TextField("Enter your password", text: $password)
+                            .textContentType(.newPassword)
+                    } else {
+                        SecureField("Enter your password", text: $password)
+                            .textContentType(.newPassword)
+                    }
+
+                    Button(action: { showPassword.toggle() }) {
+                        Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.5))
+                    }
+                }
+                .padding()
+                .background(theme.colors.background)
+                .cornerRadius(CareSphereRadius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                        .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                )
+            }
+
+            // Confirm password field with visibility toggle
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Confirm Password")
+                    .font(CareSphereTypography.bodySmall)
+                    .fontWeight(.medium)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.7))
+
+                HStack {
+                    Image(systemName: "lock")
+                        .foregroundColor(theme.colors.onSurface.opacity(0.5))
+
+                    if showConfirmPassword {
+                        TextField("Confirm your password", text: $confirmPassword)
+                            .textContentType(.newPassword)
+                    } else {
+                        SecureField("Confirm your password", text: $confirmPassword)
+                            .textContentType(.newPassword)
+                    }
+
+                    Button(action: { showConfirmPassword.toggle() }) {
+                        Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.5))
+                    }
+                }
+                .padding()
+                .background(theme.colors.background)
+                .cornerRadius(CareSphereRadius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                        .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                )
+            }
+
+            // Password requirements
+            if !password.isEmpty {
+                VStack(alignment: .leading, spacing: CareSphereSpacing.xs) {
+                    HStack(spacing: 8) {
+                        Image(
+                            systemName: password.count >= 8
+                                ? "checkmark.circle.fill" : "xmark.circle"
+                        )
+                        .foregroundColor(
+                            password.count >= 8 ? theme.colors.primary : theme.colors.error)
+                        Text("At least 8 characters")
+                            .font(CareSphereTypography.bodySmall)
+                            .foregroundColor(theme.colors.onSurface.opacity(0.7))
+                    }
+
+                    if !confirmPassword.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(
+                                systemName: password == confirmPassword
+                                    ? "checkmark.circle.fill" : "xmark.circle"
+                            )
+                            .foregroundColor(
+                                password == confirmPassword
+                                    ? theme.colors.primary : theme.colors.error)
+                            Text("Passwords match")
+                                .font(CareSphereTypography.bodySmall)
+                                .foregroundColor(theme.colors.onSurface.opacity(0.7))
+                        }
+                    }
+                }
+                .padding()
+                .background(theme.colors.surface.opacity(0.5))
+                .cornerRadius(CareSphereRadius.sm)
+            }
+
+            // Create account button
             CareSphereButton(
                 "Create Account",
                 action: onSignUp,
@@ -141,7 +282,12 @@ struct SignUpForm: View {
                 isLoading: isLoading,
                 isDisabled: !isFormValid
             )
+            .padding(.top, CareSphereSpacing.sm)
         }
+        .padding(CareSphereSpacing.xl)
+        .background(theme.colors.surface)
+        .cornerRadius(CareSphereRadius.xl)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
         .padding(.horizontal, CareSphereSpacing.xl)
     }
 }

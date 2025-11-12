@@ -9,30 +9,75 @@ struct AuthenticationView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var showingSignUp = false
+    @State private var showPassword = false
+    @State private var errorMessage = ""
+    @State private var showingError = false
 
     var body: some View {
-        VStack(spacing: CareSphereSpacing.xl) {
-            Spacer()
-
-            // Logo and title
-            LogoHeader()
-
-            Spacer()
-
-            // Sign in form
-            SignInForm(
-                email: $email,
-                password: $password,
-                isLoading: $isLoading,
-                onSignIn: signIn,
-                onShowSignUp: { showingSignUp = true }
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    theme.colors.primary.opacity(0.1),
+                    theme.colors.background,
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
+            .ignoresSafeArea()
 
-            Spacer()
+            ScrollView {
+                VStack(spacing: CareSphereSpacing.xl) {
+                    Spacer()
+                        .frame(height: 60)
+
+                    // Logo and title
+                    LogoHeader()
+
+                    // Sign in form card
+                    VStack(spacing: CareSphereSpacing.lg) {
+                        SignInForm(
+                            email: $email,
+                            password: $password,
+                            showPassword: $showPassword,
+                            isLoading: $isLoading,
+                            onSignIn: signIn
+                        )
+
+                        // Sign up link
+                        HStack(spacing: 4) {
+                            Text("Don't have an account?")
+                                .font(CareSphereTypography.bodyMedium)
+                                .foregroundColor(theme.colors.onSurface.opacity(0.7))
+
+                            Button(action: { showingSignUp = true }) {
+                                Text("Sign up")
+                                    .font(CareSphereTypography.bodyMedium)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(theme.colors.primary)
+                            }
+                        }
+                    }
+                    .padding(CareSphereSpacing.xl)
+                    .background(
+                        RoundedRectangle(cornerRadius: CareSphereRadius.lg)
+                            .fill(theme.colors.surface)
+                            .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
+                    )
+                    .padding(.horizontal, CareSphereSpacing.lg)
+
+                    Spacer()
+                        .frame(height: 60)
+                }
+            }
         }
-        .background(theme.colors.background)
         .sheet(isPresented: $showingSignUp) {
             SignUpView()
+        }
+        .alert("Sign In Error", isPresented: $showingError) {
+            Button("OK") {}
+        } message: {
+            Text(errorMessage)
         }
     }
 
@@ -44,8 +89,8 @@ struct AuthenticationView: View {
             do {
                 try await authService.login(email: email, password: password)
             } catch {
-                // Handle error (show alert, etc.)
-                print("Login failed: \(error)")
+                errorMessage = error.localizedDescription
+                showingError = true
             }
             isLoading = false
         }
@@ -58,12 +103,30 @@ struct LogoHeader: View {
 
     var body: some View {
         VStack(spacing: CareSphereSpacing.lg) {
-            Image(systemName: "heart.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(theme.colors.primary)
+            // App icon/logo
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                theme.colors.primary,
+                                theme.colors.primary.opacity(0.7),
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+                    .shadow(color: theme.colors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
+
+                Image(systemName: "heart.circle.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(.white)
+            }
 
             Text("CareSphere")
                 .font(CareSphereTypography.displayMedium)
+                .fontWeight(.bold)
                 .foregroundColor(theme.colors.onBackground)
 
             Text("Connect, Care, Community")
@@ -73,46 +136,105 @@ struct LogoHeader: View {
     }
 }
 
-/// Sign in form component
+/// Sign in form component with password visibility toggle
 struct SignInForm: View {
     @EnvironmentObject private var theme: CareSphereTheme
 
     @Binding var email: String
     @Binding var password: String
+    @Binding var showPassword: Bool
     @Binding var isLoading: Bool
 
     let onSignIn: () -> Void
-    let onShowSignUp: () -> Void
 
     var body: some View {
-        VStack(spacing: CareSphereSpacing.md) {
-            TextField("Email", text: $email)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.emailAddress)
-                #if os(iOS)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                #endif
+        VStack(spacing: CareSphereSpacing.lg) {
+            Text("Welcome Back")
+                .font(CareSphereTypography.titleLarge)
+                .fontWeight(.bold)
+                .foregroundColor(theme.colors.onSurface)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            SecureField("Password", text: $password)
-                .textFieldStyle(CareSphereTextFieldStyle())
-                .textContentType(.password)
+            VStack(spacing: CareSphereSpacing.md) {
+                // Email field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Email")
+                        .font(CareSphereTypography.bodySmall)
+                        .fontWeight(.medium)
+                        .foregroundColor(theme.colors.onSurface.opacity(0.7))
 
-            CareSphereButton(
-                "Sign In",
-                action: onSignIn,
-                style: .primary,
-                isLoading: isLoading,
-                isDisabled: email.isEmpty || password.isEmpty
-            )
+                    HStack {
+                        Image(systemName: "envelope")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-            Button("Don't have an account? Sign up") {
-                onShowSignUp()
+                        TextField("Enter your email", text: $email)
+                            .textContentType(.emailAddress)
+                            #if os(iOS)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                            #endif
+                    }
+                    .padding()
+                    .background(theme.colors.background)
+                    .cornerRadius(CareSphereRadius.md)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                            .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                    )
+                }
+
+                // Password field with visibility toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Password")
+                        .font(CareSphereTypography.bodySmall)
+                        .fontWeight(.medium)
+                        .foregroundColor(theme.colors.onSurface.opacity(0.7))
+
+                    HStack {
+                        Image(systemName: "lock")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.5))
+
+                        if showPassword {
+                            TextField("Enter your password", text: $password)
+                                .textContentType(.password)
+                        } else {
+                            SecureField("Enter your password", text: $password)
+                                .textContentType(.password)
+                        }
+
+                        Button(action: { showPassword.toggle() }) {
+                            Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.5))
+                        }
+                    }
+                    .padding()
+                    .background(theme.colors.background)
+                    .cornerRadius(CareSphereRadius.md)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CareSphereRadius.md)
+                            .stroke(theme.colors.onSurface.opacity(0.2), lineWidth: 1)
+                    )
+                }
+
+                // Forgot password
+                Button(action: {}) {
+                    Text("Forgot Password?")
+                        .font(CareSphereTypography.bodySmall)
+                        .foregroundColor(theme.colors.primary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+
+                // Sign in button
+                CareSphereButton(
+                    "Sign In",
+                    action: onSignIn,
+                    style: .primary,
+                    isLoading: isLoading,
+                    isDisabled: email.isEmpty || password.isEmpty
+                )
+                .padding(.top, CareSphereSpacing.sm)
             }
-            .font(CareSphereTypography.bodyMedium)
-            .foregroundColor(theme.colors.primary)
         }
-        .padding(.horizontal, CareSphereSpacing.xl)
     }
 }
 
