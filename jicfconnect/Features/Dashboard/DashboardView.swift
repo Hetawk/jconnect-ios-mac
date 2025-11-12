@@ -6,24 +6,24 @@ struct DashboardView: View {
     @EnvironmentObject private var authService: AuthenticationService
     @EnvironmentObject private var memberService: MemberService
     @EnvironmentObject private var messageService: MessageService
-    
+
     @State private var isLoading = false
     @State private var metrics: DashboardMetrics?
     @State private var error: APIError?
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: CareSphereSpacing.lg) {
                     // Welcome section
                     welcomeSection
-                    
+
                     // Quick stats
                     quickStatsSection
-                    
+
                     // Recent activities
                     recentActivitiesSection
-                    
+
                     // Quick actions
                     quickActionsSection
                 }
@@ -32,7 +32,7 @@ struct DashboardView: View {
             .background(theme.colors.background)
             .navigationTitle("Dashboard")
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.large)
             #endif
             .refreshable {
                 await loadDashboardData()
@@ -42,9 +42,9 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     // MARK: - Dashboard Sections
-    
+
     private var welcomeSection: some View {
         CareSphereCard {
             HStack {
@@ -52,56 +52,59 @@ struct DashboardView: View {
                     Text("Welcome back,")
                         .font(CareSphereTypography.bodyMedium)
                         .foregroundColor(theme.colors.onSurface.opacity(0.7))
-                    
+
                     Text(authService.currentUser?.firstName ?? "User")
                         .font(CareSphereTypography.headlineSmall)
                         .foregroundColor(theme.colors.onBackground)
-                    
+
                     Text("Today is a great day to care for others")
                         .font(CareSphereTypography.bodySmall)
                         .foregroundColor(theme.colors.onSurface.opacity(0.6))
                 }
-                
+
                 Spacer()
-                
+
                 CareSphereAvatar(
-                    imageURL: authService.currentUser?.profileImageURL,
+                    imageURL: authService.currentUser?.profileImageURL.flatMap { URL(string: $0) },
                     name: authService.currentUser?.fullName ?? "User",
                     size: 60
                 )
             }
         }
     }
-    
+
     private var quickStatsSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             Text("Quick Stats")
                 .font(CareSphereTypography.titleMedium)
                 .foregroundColor(theme.colors.onBackground)
                 .padding(.horizontal, CareSphereSpacing.sm)
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: CareSphereSpacing.md) {
+
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 2),
+                spacing: CareSphereSpacing.md
+            ) {
                 StatCard(
                     title: "Total Members",
                     value: "\(metrics?.memberMetrics.totalMembers ?? 0)",
                     icon: "person.3.fill",
                     color: .primary
                 )
-                
+
                 StatCard(
                     title: "Messages Sent",
                     value: "\(metrics?.messageMetrics.messagesSent ?? 0)",
                     icon: "envelope.fill",
                     color: .success
                 )
-                
+
                 StatCard(
                     title: "Active Members",
                     value: "\(metrics?.memberMetrics.activeMembers ?? 0)",
                     icon: "person.fill.checkmark",
                     color: .secondary
                 )
-                
+
                 StatCard(
                     title: "Need Follow-up",
                     value: "\(metrics?.memberMetrics.needFollowUp ?? 0)",
@@ -111,28 +114,28 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     private var recentActivitiesSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             HStack {
                 Text("Recent Activities")
                     .font(CareSphereTypography.titleMedium)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 Spacer()
-                
+
                 Button("View All") {
                     // Navigate to full activities view
                 }
                 .buttonStyle(CareSphereButtonStyle.tertiary)
             }
             .padding(.horizontal, CareSphereSpacing.sm)
-            
+
             CareSphereCard {
                 VStack(spacing: CareSphereSpacing.md) {
                     ForEach(sampleActivities, id: \.id) { activity in
                         ActivityRow(activity: activity)
-                        
+
                         if activity.id != sampleActivities.last?.id {
                             Divider()
                                 .background(CareSphereColors.borderLight)
@@ -142,15 +145,18 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             Text("Quick Actions")
                 .font(CareSphereTypography.titleMedium)
                 .foregroundColor(theme.colors.onBackground)
                 .padding(.horizontal, CareSphereSpacing.sm)
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: CareSphereSpacing.md) {
+
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 2),
+                spacing: CareSphereSpacing.md
+            ) {
                 QuickActionCard(
                     title: "Add Member",
                     icon: "person.fill.badge.plus",
@@ -158,7 +164,7 @@ struct DashboardView: View {
                 ) {
                     // Navigate to add member
                 }
-                
+
                 QuickActionCard(
                     title: "Send Message",
                     icon: "envelope.fill",
@@ -166,7 +172,7 @@ struct DashboardView: View {
                 ) {
                     // Navigate to compose message
                 }
-                
+
                 QuickActionCard(
                     title: "View Analytics",
                     icon: "chart.bar.fill",
@@ -174,7 +180,7 @@ struct DashboardView: View {
                 ) {
                     // Navigate to analytics
                 }
-                
+
                 QuickActionCard(
                     title: "Create Automation",
                     icon: "gearshape.fill",
@@ -185,17 +191,17 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     // MARK: - Data Loading
-    
+
     private func loadDashboardData() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         // Simulate loading dashboard metrics
         // In real implementation, this would call the analytics service
         try? await Task.sleep(nanoseconds: 1_000_000_000)
-        
+
         // Mock data
         metrics = DashboardMetrics(
             organizationId: authService.currentUser?.organizationId ?? "",
@@ -209,7 +215,7 @@ struct DashboardView: View {
                 averageAge: 42.5,
                 membersByStatus: [
                     .active: 134,
-                    .inactive: 22
+                    .inactive: 22,
                 ],
                 memberGrowthTrend: [],
                 topTags: []
@@ -257,7 +263,7 @@ struct StatCard: View {
     let value: String
     let icon: String
     let color: CareSphereStatusBadge.StatusColor
-    
+
     var body: some View {
         CareSphereCard(padding: CareSphereSpacing.md) {
             VStack(alignment: .leading, spacing: CareSphereSpacing.sm) {
@@ -265,14 +271,14 @@ struct StatCard: View {
                     Image(systemName: icon)
                         .font(.title3)
                         .foregroundColor(color.color(in: theme))
-                    
+
                     Spacer()
                 }
-                
+
                 Text(value)
                     .font(CareSphereTypography.headlineSmall)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 Text(title)
                     .font(CareSphereTypography.bodySmall)
                     .foregroundColor(theme.colors.onSurface.opacity(0.7))
@@ -284,26 +290,26 @@ struct StatCard: View {
 struct ActivityRow: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let activity: ActivityItem
-    
+
     var body: some View {
         HStack(spacing: CareSphereSpacing.md) {
             Image(systemName: activity.icon)
                 .font(.title3)
                 .foregroundColor(activity.color.color(in: theme))
                 .frame(width: 24, height: 24)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(activity.title)
                     .font(CareSphereTypography.bodyMedium)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 Text(activity.subtitle)
                     .font(CareSphereTypography.bodySmall)
                     .foregroundColor(theme.colors.onSurface.opacity(0.7))
             }
-            
+
             Spacer()
-            
+
             Text(activity.timeAgo)
                 .font(CareSphereTypography.caption)
                 .foregroundColor(theme.colors.onSurface.opacity(0.6))
@@ -317,7 +323,7 @@ struct QuickActionCard: View {
     let icon: String
     let color: CareSphereStatusBadge.StatusColor
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             CareSphereCard(padding: CareSphereSpacing.md) {
@@ -325,7 +331,7 @@ struct QuickActionCard: View {
                     Image(systemName: icon)
                         .font(.title2)
                         .foregroundColor(color.color(in: theme))
-                    
+
                     Text(title)
                         .font(CareSphereTypography.labelMedium)
                         .foregroundColor(theme.colors.onBackground)
@@ -377,7 +383,7 @@ private let sampleActivities = [
         icon: "gearshape.fill",
         color: .secondary,
         timeAgo: "8h ago"
-    )
+    ),
 ]
 
 #Preview {

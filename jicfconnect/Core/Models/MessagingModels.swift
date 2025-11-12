@@ -20,20 +20,20 @@ struct Message: Codable, Identifiable, Equatable {
     let metadata: [String: String]
     let createdAt: Date
     let updatedAt: Date
-    
+
     // Computed properties
     var recipientCount: Int {
         return recipients.count
     }
-    
+
     var successfulDeliveries: Int {
         return recipients.filter { $0.deliveryStatus == .delivered }.count
     }
-    
+
     var failedDeliveries: Int {
         return recipients.filter { $0.deliveryStatus == .failed }.count
     }
-    
+
     var deliveryRate: Double {
         guard recipientCount > 0 else { return 0 }
         return Double(successfulDeliveries) / Double(recipientCount)
@@ -50,7 +50,7 @@ enum MessageType: String, Codable, CaseIterable {
     case welcome = "welcome"
     case followUp = "follow_up"
     case emergency = "emergency"
-    
+
     var displayName: String {
         switch self {
         case .broadcast:
@@ -79,11 +79,11 @@ enum MessagePriority: String, Codable, CaseIterable {
     case normal = "normal"
     case high = "high"
     case urgent = "urgent"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
-    
+
     var color: String {
         switch self {
         case .low:
@@ -96,7 +96,7 @@ enum MessagePriority: String, Codable, CaseIterable {
             return "error"
         }
     }
-    
+
     var sortOrder: Int {
         switch self {
         case .urgent:
@@ -119,7 +119,7 @@ enum MessageChannel: String, Codable, CaseIterable {
     case push = "push"
     case inApp = "in_app"
     case voice = "voice"
-    
+
     var displayName: String {
         switch self {
         case .email:
@@ -136,7 +136,7 @@ enum MessageChannel: String, Codable, CaseIterable {
             return "Voice"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .email:
@@ -153,7 +153,7 @@ enum MessageChannel: String, Codable, CaseIterable {
             return "phone"
         }
     }
-    
+
     var requiresContent: Bool {
         switch self {
         case .email, .sms, .whatsapp, .inApp:
@@ -174,7 +174,7 @@ enum MessageStatus: String, Codable, CaseIterable {
     case sent = "sent"
     case failed = "failed"
     case cancelled = "cancelled"
-    
+
     var displayName: String {
         switch self {
         case .draft:
@@ -191,7 +191,7 @@ enum MessageStatus: String, Codable, CaseIterable {
             return "Cancelled"
         }
     }
-    
+
     var color: String {
         switch self {
         case .draft:
@@ -231,7 +231,7 @@ enum RecipientType: String, Codable, CaseIterable {
     case member = "member"
     case user = "user"
     case external = "external"  // Non-member contact
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
@@ -253,7 +253,7 @@ enum DeliveryStatus: String, Codable, CaseIterable {
     case failed = "failed"
     case bounced = "bounced"
     case unsubscribed = "unsubscribed"
-    
+
     var displayName: String {
         switch self {
         case .pending:
@@ -272,7 +272,7 @@ enum DeliveryStatus: String, Codable, CaseIterable {
             return "Unsubscribed"
         }
     }
-    
+
     var color: String {
         switch self {
         case .pending:
@@ -311,7 +311,7 @@ struct MessageTemplate: Codable, Identifiable, Equatable {
     let createdBy: String  // User ID
     let createdAt: Date
     let updatedAt: Date
-    
+
     // Computed properties
     var placeholderNames: [String] {
         return placeholders.map { $0.name }
@@ -328,7 +328,7 @@ enum TemplateCategory: String, Codable, CaseIterable {
     case pastoral = "pastoral"
     case emergency = "emergency"
     case general = "general"
-    
+
     var displayName: String {
         switch self {
         case .welcome:
@@ -370,7 +370,7 @@ enum PlaceholderType: String, Codable, CaseIterable {
     case memberField = "member_field"
     case userField = "user_field"
     case organizationField = "organization_field"
-    
+
     var displayName: String {
         switch self {
         case .text:
@@ -432,7 +432,7 @@ struct MessageAnalytics: Codable {
     let channelBreakdown: [MessageChannel: ChannelMetrics]
 }
 
-struct ChannelMetrics: Codable {
+struct ChannelMetrics: Codable, Equatable {
     let recipientCount: Int
     let deliveredCount: Int
     let readCount: Int
@@ -466,7 +466,7 @@ enum MessageSortField: String, Codable, CaseIterable {
     case priority = "priority"
     case recipientCount = "recipient_count"
     case deliveryRate = "delivery_rate"
-    
+
     var displayName: String {
         switch self {
         case .createdAt:

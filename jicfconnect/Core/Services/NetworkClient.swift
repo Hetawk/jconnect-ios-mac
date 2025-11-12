@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 // MARK: - API Configuration
 
@@ -9,9 +9,9 @@ struct APIConfiguration {
     let timeout: TimeInterval
     let retryAttempts: Int
     let retryDelay: TimeInterval
-    
+
     static let shared = APIConfiguration(
-        baseURL: URL(string: Env.string("API_BASE_URL", default: "https://api.caresphere.app") ?? "https://api.caresphere.app")!,
+        baseURL: URL(string: "https://api.caresphere.app")!,
         timeout: 30.0,
         retryAttempts: 3,
         retryDelay: 1.0
@@ -35,7 +35,7 @@ enum APIError: Error, LocalizedError {
     case timeout
     case noInternetConnection
     case unknown(Error)
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidURL:
@@ -66,11 +66,13 @@ enum APIError: Error, LocalizedError {
             return "Unknown error: \(error.localizedDescription)"
         }
     }
-    
+
     var isRetryable: Bool {
         switch self {
-        case .networkError, .timeout, .serverError(let code, _):
-            return code >= 500
+        case .networkError, .timeout:
+            return true
+        case .serverError(let statusCode, _):
+            return statusCode >= 500
         case .noInternetConnection, .rateLimited:
             return true
         default:
@@ -118,101 +120,129 @@ struct ResponseMetadata: Codable {
 @MainActor
 class NetworkClient: ObservableObject {
     static let shared = NetworkClient()
-    
+
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
     private var authToken: String?
     private var refreshToken: String?
-    
+
     @Published var isOnline = true
     @Published var isLoading = false
-    
+
     init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = APIConfiguration.shared.timeout
         config.timeoutIntervalForResource = APIConfiguration.shared.timeout * 2
-        
+
         self.session = URLSession(configuration: config)
-        
+
         // Configure JSON decoder with date formatting
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
-        
+
         self.encoder = JSONEncoder()
         self.encoder.dateEncodingStrategy = .iso8601
-        
+
         // Load stored authentication tokens
         loadAuthTokens()
-        
+
         // Monitor network connectivity
         startNetworkMonitoring()
     }
-    
+
     // MARK: - Authentication
-    
+
     func setAuthToken(_ token: String, refreshToken: String? = nil) {
         self.authToken = token
         self.refreshToken = refreshToken
         saveAuthTokens()
     }
-    
+
     func clearAuthTokens() {
         self.authToken = nil
         self.refreshToken = nil
         clearStoredTokens()
     }
-    
+
+    var isAuthenticated: Bool {
+        return authToken != nil
+    }
+
     private func loadAuthTokens() {
         self.authToken = KeychainHelper.load(service: "CareSphereAuth", account: "accessToken")
         self.refreshToken = KeychainHelper.load(service: "CareSphereAuth", account: "refreshToken")
     }
-    
+
     private func saveAuthTokens() {
         if let authToken = authToken {
             KeychainHelper.save(service: "CareSphereAuth", account: "accessToken", data: authToken)
         }
         if let refreshToken = refreshToken {
-            KeychainHelper.save(service: "CareSphereAuth", account: "refreshToken", data: refreshToken)
+            KeychainHelper.save(
+                service: "CareSphereAuth", account: "refreshToken", data: refreshToken)
         }
     }
-    
+
     private func clearStoredTokens() {
         KeychainHelper.delete(service: "CareSphereAuth", account: "accessToken")
         KeychainHelper.delete(service: "CareSphereAuth", account: "refreshToken")
     }
-    
+
     // MARK: - Network Requests
-    
+
+    // Request without body
     func request<T: Codable>(
         endpoint: APIEndpoint,
         method: HTTPMethod = .GET,
-        body: (some Codable)? = nil,
         headers: [String: String] = [:]
     ) async throws -> T {
-        
+        return try await requestWithBody(
+            endpoint: endpoint, method: method, body: EmptyBody?.none, headers: headers)
+    }
+
+    // Request with body
+    func request<T: Codable, Body: Codable>(
+        endpoint: APIEndpoint,
+        method: HTTPMethod,
+        body: Body,
+        headers: [String: String] = [:]
+    ) async throws -> T {
+        return try await requestWithBody(
+            endpoint: endpoint, method: method, body: body, headers: headers)
+    }
+
+    private struct EmptyBody: Codable {}
+
+    private func requestWithBody<T: Codable, Body: Codable>(
+        endpoint: APIEndpoint,
+        method: HTTPMethod,
+        body: Body?,
+        headers: [String: String]
+    ) async throws -> T {
+
         guard isOnline else {
             throw APIError.noInternetConnection
         }
-        
+
         let url = APIConfiguration.shared.baseURL.appendingPathComponent(endpoint.path)
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        
+
         // Set default headers
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
+
         // Add authentication header
         if let authToken = authToken {
             request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         }
-        
+
         // Add custom headers
         headers.forEach { key, value in
             request.setValue(value, forHTTPHeaderField: key)
         }
-        
+
         // Encode request body
         if let body = body {
             do {
@@ -221,26 +251,26 @@ class NetworkClient: ObservableObject {
                 throw APIError.encodingError(error)
             }
         }
-        
+
         // Perform request with retry logic
         return try await performRequestWithRetry(request: request)
     }
-    
+
     private func performRequestWithRetry<T: Codable>(
         request: URLRequest,
         attempt: Int = 1
     ) async throws -> T {
-        
+
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             let (data, response) = try await session.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.unknown(NSError(domain: "Invalid response", code: 0))
             }
-            
+
             // Handle different HTTP status codes
             switch httpResponse.statusCode {
             case 200...299:
@@ -260,31 +290,34 @@ class NetworkClient: ObservableObject {
                 throw APIError.rateLimited
             case 500...599:
                 let errorMessage = try? extractErrorMessage(from: data)
-                throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+                throw APIError.serverError(
+                    statusCode: httpResponse.statusCode, message: errorMessage)
             default:
                 let errorMessage = try? extractErrorMessage(from: data)
-                throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+                throw APIError.serverError(
+                    statusCode: httpResponse.statusCode, message: errorMessage)
             }
-            
+
         } catch let error as APIError {
             throw error
         } catch {
             // Check if this is a retryable error and we haven't exceeded retry attempts
             if attempt < APIConfiguration.shared.retryAttempts && isRetryableError(error) {
-                try await Task.sleep(nanoseconds: UInt64(APIConfiguration.shared.retryDelay * 1_000_000_000))
+                try await Task.sleep(
+                    nanoseconds: UInt64(APIConfiguration.shared.retryDelay * 1_000_000_000))
                 return try await performRequestWithRetry(request: request, attempt: attempt + 1)
             }
-            
+
             throw mapNetworkError(error)
         }
     }
-    
+
     private func handleSuccessResponse<T: Codable>(data: Data) throws -> T {
         // If T is Data, return raw data
         if T.self == Data.self {
             return data as! T
         }
-        
+
         // Try to decode as APIResponse<T> first
         do {
             let apiResponse = try decoder.decode(APIResponse<T>.self, from: data)
@@ -304,36 +337,37 @@ class NetworkClient: ObservableObject {
             }
         }
     }
-    
+
     private func extractErrorMessage(from data: Data) throws -> String? {
         let errorResponse = try decoder.decode(APIErrorResponse.self, from: data)
         return errorResponse.message
     }
-    
+
     private func isRetryableError(_ error: Error) -> Bool {
         if let apiError = error as? APIError {
             return apiError.isRetryable
         }
-        
+
         let nsError = error as NSError
-        return nsError.domain == NSURLErrorDomain && [
-            NSURLErrorTimedOut,
-            NSURLErrorCannotConnectToHost,
-            NSURLErrorNetworkConnectionLost,
-            NSURLErrorNotConnectedToInternet
-        ].contains(nsError.code)
+        return nsError.domain == NSURLErrorDomain
+            && [
+                NSURLErrorTimedOut,
+                NSURLErrorCannotConnectToHost,
+                NSURLErrorNetworkConnectionLost,
+                NSURLErrorNotConnectedToInternet,
+            ].contains(nsError.code)
     }
-    
+
     private func mapNetworkError(_ error: Error) -> APIError {
         let nsError = error as NSError
-        
+
         switch nsError.domain {
         case NSURLErrorDomain:
             switch nsError.code {
             case NSURLErrorTimedOut:
                 return .timeout
             case NSURLErrorNotConnectedToInternet,
-                 NSURLErrorNetworkConnectionLost:
+                NSURLErrorNetworkConnectionLost:
                 return .noInternetConnection
             default:
                 return .networkError(error)
@@ -342,20 +376,20 @@ class NetworkClient: ObservableObject {
             return .unknown(error)
         }
     }
-    
+
     private func refreshAuthToken() async throws {
         guard let refreshToken = refreshToken else {
             throw APIError.unauthorized
         }
-        
+
         // Implementation would call refresh token endpoint
         // For now, just clear tokens to force re-login
         clearAuthTokens()
         throw APIError.unauthorized
     }
-    
+
     // MARK: - Network Monitoring
-    
+
     private func startNetworkMonitoring() {
         // Implementation would use Network framework to monitor connectivity
         // For now, assume we're online
@@ -377,7 +411,7 @@ enum Endpoints {
         case refresh
         case logout
         case profile
-        
+
         var path: String {
             switch self {
             case .login: return "/auth/login"
@@ -388,7 +422,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Members
     enum Members: APIEndpoint {
         case list
@@ -399,7 +433,7 @@ enum Endpoints {
         case search
         case notes(memberId: String)
         case activities(memberId: String)
-        
+
         var path: String {
             switch self {
             case .list: return "/members"
@@ -413,7 +447,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Messages
     enum Messages: APIEndpoint {
         case list
@@ -423,7 +457,7 @@ enum Endpoints {
         case delete(id: String)
         case send(id: String)
         case analytics(id: String)
-        
+
         var path: String {
             switch self {
             case .list: return "/messages"
@@ -436,7 +470,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Templates
     enum Templates: APIEndpoint {
         case list
@@ -444,7 +478,7 @@ enum Endpoints {
         case get(id: String)
         case update(id: String)
         case delete(id: String)
-        
+
         var path: String {
             switch self {
             case .list: return "/templates"
@@ -455,7 +489,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Automation
     enum Automation: APIEndpoint {
         case rules
@@ -465,7 +499,7 @@ enum Endpoints {
         case deleteRule(id: String)
         case logs(ruleId: String?)
         case execute(ruleId: String)
-        
+
         var path: String {
             switch self {
             case .rules: return "/automation/rules"
@@ -479,7 +513,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Analytics
     enum Analytics: APIEndpoint {
         case dashboard
@@ -488,7 +522,7 @@ enum Endpoints {
         case automation
         case engagement
         case reports
-        
+
         var path: String {
             switch self {
             case .dashboard: return "/analytics/dashboard"
@@ -508,46 +542,50 @@ enum Endpoints {
 enum KeychainHelper {
     static func save(service: String, account: String, data: String) {
         let data = Data(data.utf8)
-        
-        let query = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: service,
-            kSecAttrAccount: account,
-            kSecValueData: data
-        ] as CFDictionary
-        
+
+        let query =
+            [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrService: service,
+                kSecAttrAccount: account,
+                kSecValueData: data,
+            ] as CFDictionary
+
         SecItemDelete(query)
         SecItemAdd(query, nil)
     }
-    
+
     static func load(service: String, account: String) -> String? {
-        let query = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: service,
-            kSecAttrAccount: account,
-            kSecReturnData: true,
-            kSecMatchLimit: kSecMatchLimitOne
-        ] as CFDictionary
-        
+        let query =
+            [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrService: service,
+                kSecAttrAccount: account,
+                kSecReturnData: true,
+                kSecMatchLimit: kSecMatchLimitOne,
+            ] as CFDictionary
+
         var dataTypeRef: AnyObject?
         let status = SecItemCopyMatching(query, &dataTypeRef)
-        
+
         if status == errSecSuccess,
-           let data = dataTypeRef as? Data,
-           let string = String(data: data, encoding: .utf8) {
+            let data = dataTypeRef as? Data,
+            let string = String(data: data, encoding: .utf8)
+        {
             return string
         }
-        
+
         return nil
     }
-    
+
     static func delete(service: String, account: String) {
-        let query = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: service,
-            kSecAttrAccount: account
-        ] as CFDictionary
-        
+        let query =
+            [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrService: service,
+                kSecAttrAccount: account,
+            ] as CFDictionary
+
         SecItemDelete(query)
     }
 }

@@ -3,19 +3,19 @@ import SwiftUI
 // MARK: - Button Component
 
 /// Reusable button component with CareSphere styling
-struct CareSphereButton: View {
+public struct CareSphereButton: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let title: String
     let action: () -> Void
     let style: ButtonStyle
     let isLoading: Bool
     let isDisabled: Bool
-    
-    enum ButtonStyle {
+
+    public enum ButtonStyle {
         case primary, secondary, tertiary, destructive
     }
-    
-    init(
+
+    public init(
         _ title: String,
         action: @escaping () -> Void,
         style: ButtonStyle = .primary,
@@ -28,23 +28,51 @@ struct CareSphereButton: View {
         self.isLoading = isLoading
         self.isDisabled = isDisabled
     }
-    
-    var body: some View {
-        Button(action: isLoading || isDisabled ? {} : action) {
-            HStack(spacing: CareSphereSpacing.sm) {
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .tint(textColor)
-                } else {
-                    Text(title)
+
+    public var body: some View {
+        Group {
+            switch style {
+            case .primary:
+                Button(action: isLoading || isDisabled ? {} : action) {
+                    buttonContent
                 }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(isLoading || isDisabled)
+            case .secondary:
+                Button(action: isLoading || isDisabled ? {} : action) {
+                    buttonContent
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .disabled(isLoading || isDisabled)
+            case .tertiary:
+                Button(action: isLoading || isDisabled ? {} : action) {
+                    buttonContent
+                }
+                .buttonStyle(TertiaryButtonStyle())
+                .disabled(isLoading || isDisabled)
+            case .destructive:
+                Button(action: isLoading || isDisabled ? {} : action) {
+                    buttonContent
+                }
+                .buttonStyle(DestructiveButtonStyle())
+                .disabled(isLoading || isDisabled)
             }
         }
-        .buttonStyle(buttonStyle)
-        .disabled(isLoading || isDisabled)
     }
-    
+
+    @ViewBuilder
+    private var buttonContent: some View {
+        HStack(spacing: CareSphereSpacing.sm) {
+            if isLoading {
+                ProgressView()
+                    .scaleEffect(0.8)
+                    .tint(textColor)
+            } else {
+                Text(title)
+            }
+        }
+    }
+
     private var textColor: Color {
         switch style {
         case .primary, .destructive:
@@ -53,42 +81,29 @@ struct CareSphereButton: View {
             return theme.colors.primary
         }
     }
-    
-    private var buttonStyle: some ButtonStyle {
-        switch style {
-        case .primary:
-            return CareSphereButtonStyle.primary
-        case .secondary:
-            return CareSphereButtonStyle.secondary
-        case .tertiary:
-            return CareSphereButtonStyle.tertiary
-        case .destructive:
-            return CareSphereButtonStyle.destructive
-        }
-    }
 }
 
 // MARK: - Button Styles
 
 /// CareSphere button style system
 struct CareSphereButtonStyle {
-    
+
     /// Primary button style for main actions
     static let primary = PrimaryButtonStyle()
-    
+
     /// Secondary button style for secondary actions
     static let secondary = SecondaryButtonStyle()
-    
+
     /// Tertiary button style for subtle actions
     static let tertiary = TertiaryButtonStyle()
-    
+
     /// Destructive button style for dangerous actions
     static let destructive = DestructiveButtonStyle()
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
     @EnvironmentObject private var theme: CareSphereTheme
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.primary)
@@ -108,7 +123,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 
 struct SecondaryButtonStyle: ButtonStyle {
     @EnvironmentObject private var theme: CareSphereTheme
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.secondary)
@@ -120,7 +135,9 @@ struct SecondaryButtonStyle: ButtonStyle {
                     .strokeBorder(theme.colors.primary, lineWidth: 1.5)
                     .background(
                         RoundedRectangle(cornerRadius: CareSphereRadius.Component.button)
-                            .fill(configuration.isPressed ? theme.colors.primary.opacity(0.1) : Color.clear)
+                            .fill(
+                                configuration.isPressed
+                                    ? theme.colors.primary.opacity(0.1) : Color.clear)
                     )
             )
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -130,7 +147,7 @@ struct SecondaryButtonStyle: ButtonStyle {
 
 struct TertiaryButtonStyle: ButtonStyle {
     @EnvironmentObject private var theme: CareSphereTheme
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.tertiary)
@@ -148,7 +165,7 @@ struct TertiaryButtonStyle: ButtonStyle {
 
 struct DestructiveButtonStyle: ButtonStyle {
     @EnvironmentObject private var theme: CareSphereTheme
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.primary)
@@ -172,7 +189,7 @@ struct DestructiveButtonStyle: ButtonStyle {
 struct CareSphereTextFieldStyle: TextFieldStyle {
     @EnvironmentObject private var theme: CareSphereTheme
     @State private var isFocused = false
-    
+
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .font(CareSphereTypography.Forms.input)
@@ -205,12 +222,12 @@ struct CareSphereCard<Content: View>: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let content: Content
     let padding: CGFloat
-    
+
     init(padding: CGFloat = CareSphereSpacing.lg, @ViewBuilder content: () -> Content) {
         self.content = content()
         self.padding = padding
     }
-    
+
     var body: some View {
         content
             .padding(padding)
@@ -228,17 +245,17 @@ struct CareSphereCard<Content: View>: View {
 struct CareSphereLoadingView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let message: String
-    
+
     init(_ message: String = "Loading...") {
         self.message = message
     }
-    
+
     var body: some View {
         VStack(spacing: CareSphereSpacing.md) {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle(tint: theme.colors.primary))
                 .scaleEffect(1.5)
-            
+
             Text(message)
                 .font(CareSphereTypography.bodyMedium)
                 .foregroundColor(theme.colors.onSurface.opacity(0.7))
@@ -255,23 +272,23 @@ struct CareSphereErrorView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let error: APIError
     let retryAction: () -> Void
-    
+
     var body: some View {
         VStack(spacing: CareSphereSpacing.lg) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 48))
                 .foregroundColor(CareSphereColors.error)
-            
+
             Text("Something went wrong")
                 .font(CareSphereTypography.titleMedium)
                 .foregroundColor(theme.colors.onBackground)
-            
+
             Text(error.errorDescription ?? "Unknown error occurred")
                 .font(CareSphereTypography.bodyMedium)
                 .foregroundColor(theme.colors.onSurface.opacity(0.7))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, CareSphereSpacing.xl)
-            
+
             Button(action: retryAction) {
                 Text("Try Again")
                     .font(CareSphereTypography.Buttons.primary)
@@ -292,14 +309,14 @@ struct CareSphereStatusBadge: View {
     let text: String
     let color: StatusColor
     let size: BadgeSize
-    
+
     enum StatusColor {
         case primary
         case success
         case warning
         case error
         case secondary
-        
+
         func color(in theme: CareSphereTheme) -> Color {
             switch self {
             case .primary:
@@ -314,17 +331,17 @@ struct CareSphereStatusBadge: View {
                 return CareSphereColors.textSecondary
             }
         }
-        
+
         func backgroundColor(in theme: CareSphereTheme) -> Color {
             color(in: theme).opacity(0.1)
         }
     }
-    
+
     enum BadgeSize {
         case small
         case medium
         case large
-        
+
         var font: Font {
             switch self {
             case .small:
@@ -335,7 +352,7 @@ struct CareSphereStatusBadge: View {
                 return CareSphereTypography.labelMedium
             }
         }
-        
+
         var padding: EdgeInsets {
             switch self {
             case .small:
@@ -347,13 +364,13 @@ struct CareSphereStatusBadge: View {
             }
         }
     }
-    
+
     init(_ text: String, color: StatusColor = .primary, size: BadgeSize = .medium) {
         self.text = text
         self.color = color
         self.size = size
     }
-    
+
     var body: some View {
         Text(text)
             .font(size.font)
@@ -374,13 +391,13 @@ struct CareSphereAvatar: View {
     let imageURL: URL?
     let name: String
     let size: CGFloat
-    
+
     init(imageURL: URL? = nil, name: String, size: CGFloat = 40) {
         self.imageURL = imageURL
         self.name = name
         self.size = size
     }
-    
+
     var body: some View {
         Group {
             if let imageURL = imageURL {
@@ -398,18 +415,18 @@ struct CareSphereAvatar: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
     }
-    
+
     private var avatarPlaceholder: some View {
         ZStack {
             Circle()
                 .fill(theme.colors.primary.opacity(0.1))
-            
+
             Text(initials)
                 .font(.system(size: size * 0.4, weight: .medium))
                 .foregroundColor(theme.colors.primary)
         }
     }
-    
+
     private var initials: String {
         let components = name.split(separator: " ")
         if components.count >= 2 {
@@ -431,7 +448,7 @@ struct CareSphereEmptyState: View {
     let description: String
     let actionTitle: String?
     let action: (() -> Void)?
-    
+
     init(
         icon: String,
         title: String,
@@ -445,24 +462,24 @@ struct CareSphereEmptyState: View {
         self.actionTitle = actionTitle
         self.action = action
     }
-    
+
     var body: some View {
         VStack(spacing: CareSphereSpacing.lg) {
             Image(systemName: icon)
                 .font(.system(size: 64))
                 .foregroundColor(theme.colors.onSurface.opacity(0.3))
-            
+
             VStack(spacing: CareSphereSpacing.sm) {
                 Text(title)
                     .font(CareSphereTypography.titleMedium)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 Text(description)
                     .font(CareSphereTypography.bodyMedium)
                     .foregroundColor(theme.colors.onSurface.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
-            
+
             if let actionTitle = actionTitle, let action = action {
                 Button(action: action) {
                     Text(actionTitle)
@@ -483,7 +500,7 @@ struct CareSphereSearchBar: View {
     @Binding var text: String
     let placeholder: String
     let onSearchButtonClicked: (() -> Void)?
-    
+
     init(
         text: Binding<String>,
         placeholder: String = "Search...",
@@ -493,18 +510,18 @@ struct CareSphereSearchBar: View {
         self.placeholder = placeholder
         self.onSearchButtonClicked = onSearchButtonClicked
     }
-    
+
     var body: some View {
         HStack(spacing: CareSphereSpacing.sm) {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(theme.colors.onSurface.opacity(0.6))
-            
+
             TextField(placeholder, text: $text)
                 .font(CareSphereTypography.bodyMedium)
                 .onSubmit {
                     onSearchButtonClicked?()
                 }
-            
+
             if !text.isEmpty {
                 Button(action: {
                     text = ""
@@ -525,86 +542,5 @@ struct CareSphereSearchBar: View {
                         .strokeBorder(CareSphereColors.borderLight)
                 )
         )
-    }
-}
-
-// MARK: - Extensions for Display Names
-
-extension MemberStatus {
-    var displayName: String {
-        switch self {
-        case .active: return "Active"
-        case .inactive: return "Inactive"
-        case .needsFollowUp: return "Needs Follow-up"
-        case .archived: return "Archived"
-        case .new: return "New"
-        }
-    }
-}
-
-extension MessageStatus {
-    var displayName: String {
-        switch self {
-        case .sent: return "Sent"
-        case .failed: return "Failed"
-        case .scheduled: return "Scheduled"
-        case .sending: return "Sending"
-        case .draft: return "Draft"
-        case .cancelled: return "Cancelled"
-        }
-    }
-}
-
-extension MessageChannel {
-    var displayName: String {
-        switch self {
-        case .email: return "Email"
-        case .sms: return "SMS"
-        case .push: return "Push"
-        case .inApp: return "In-App"
-        case .voice: return "Voice"
-        case .whatsapp: return "WhatsApp"
-        case .slack: return "Slack"
-        case .teams: return "Teams"
-        case .webhook: return "Webhook"
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .email: return "envelope"
-        case .sms: return "message"
-        case .push: return "bell"
-        case .inApp: return "app"
-        case .voice: return "phone"
-        case .whatsapp: return "message.circle"
-        case .slack: return "bubble.left"
-        case .teams: return "person.2"
-        case .webhook: return "link"
-        }
-    }
-}
-
-// MARK: - Analytics Period Enum
-
-enum AnalyticsPeriod: String, CaseIterable {
-    case today = "today"
-    case yesterday = "yesterday"
-    case last7Days = "last7Days"
-    case last30Days = "last30Days"
-    case last90Days = "last90Days"
-    case lastYear = "lastYear"
-    case custom = "custom"
-    
-    var displayName: String {
-        switch self {
-        case .today: return "Today"
-        case .yesterday: return "Yesterday"
-        case .last7Days: return "Last 7 Days"
-        case .last30Days: return "Last 30 Days"
-        case .last90Days: return "Last 90 Days"
-        case .lastYear: return "Last Year"
-        case .custom: return "Custom"
-        }
     }
 }

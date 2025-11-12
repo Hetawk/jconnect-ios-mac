@@ -31,7 +31,7 @@ enum AutomationTrigger: Codable, Equatable {
     case messageDeliveryFailed(attempts: Int)
     case schedule(cron: String)
     case customEvent(eventType: String)
-    
+
     var displayName: String {
         switch self {
         case .memberAdded:
@@ -62,7 +62,7 @@ enum AnniversaryType: String, Codable, CaseIterable {
     case membership = "membership"
     case wedding = "wedding"
     case salvation = "salvation"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
@@ -71,9 +71,16 @@ enum AnniversaryType: String, Codable, CaseIterable {
 /// Conditions for automation rule execution
 struct AutomationCondition: Codable, Equatable {
     let field: String
-    let operator: ConditionOperator
+    let conditionOperator: ConditionOperator
     let value: String
     let logicalOperator: LogicalOperator?
+
+    enum CodingKeys: String, CodingKey {
+        case field
+        case conditionOperator = "operator"
+        case value
+        case logicalOperator
+    }
 }
 
 enum ConditionOperator: String, Codable, CaseIterable {
@@ -91,7 +98,7 @@ enum ConditionOperator: String, Codable, CaseIterable {
     case isNotEmpty = "is_not_empty"
     case inList = "in_list"
     case notInList = "not_in_list"
-    
+
     var displayName: String {
         switch self {
         case .equals:
@@ -129,7 +136,7 @@ enum ConditionOperator: String, Codable, CaseIterable {
 enum LogicalOperator: String, Codable, CaseIterable {
     case and = "and"
     case or = "or"
-    
+
     var displayName: String {
         return rawValue.uppercased()
     }
@@ -147,7 +154,7 @@ enum AutomationAction: Codable, Equatable {
     case sendNotification(userId: String, message: String)
     case webhook(url: String, payload: [String: String])
     case customAction(actionType: String, parameters: [String: String])
-    
+
     var displayName: String {
         switch self {
         case .sendMessage(_, let channel, let delay):
@@ -189,7 +196,7 @@ enum ScheduleType: String, Codable, CaseIterable {
     case weekly = "weekly"
     case monthly = "monthly"
     case cron = "cron"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
@@ -217,11 +224,11 @@ enum ExecutionStatus: String, Codable, CaseIterable {
     case completed = "completed"
     case failed = "failed"
     case skipped = "skipped"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
-    
+
     var color: String {
         switch self {
         case .pending:
@@ -270,7 +277,7 @@ enum AnalyticsPeriod: String, Codable, CaseIterable {
     case thisYear = "this_year"
     case lastYear = "last_year"
     case custom = "custom"
-    
+
     var displayName: String {
         switch self {
         case .today:
@@ -397,7 +404,7 @@ enum AnalyticsGranularity: String, Codable, CaseIterable {
     case week = "week"
     case month = "month"
     case year = "year"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
@@ -437,7 +444,7 @@ enum ReportType: String, Codable, CaseIterable {
     case engagementSummary = "engagement_summary"
     case careActivities = "care_activities"
     case comprehensive = "comprehensive"
-    
+
     var displayName: String {
         switch self {
         case .memberGrowth:
@@ -461,7 +468,7 @@ enum ReportFormat: String, Codable, CaseIterable {
     case excel = "excel"
     case csv = "csv"
     case json = "json"
-    
+
     var mimeType: String {
         switch self {
         case .pdf:

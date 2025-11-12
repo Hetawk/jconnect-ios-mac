@@ -4,11 +4,11 @@ import SwiftUI
 struct MembersView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var memberService: MemberService
-    
+
     @State private var searchText = ""
     @State private var selectedMember: Member?
     @State private var showingAddMember = false
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -22,7 +22,7 @@ struct MembersView: View {
                     }
                 }
                 .padding(CareSphereSpacing.md)
-                
+
                 // Members list
                 if memberService.isLoading {
                     CareSphereLoadingView("Loading members...")
@@ -70,24 +70,24 @@ struct MembersView: View {
             }
         }
     }
-    
+
     private var filteredMembers: [Member] {
         if searchText.isEmpty {
             return memberService.members
         } else {
             return memberService.members.filter { member in
-                member.fullName.localizedCaseInsensitiveContains(searchText) ||
-                member.email?.localizedCaseInsensitiveContains(searchText) == true
+                member.fullName.localizedCaseInsensitiveContains(searchText)
+                    || member.email?.localizedCaseInsensitiveContains(searchText) == true
             }
         }
     }
-    
+
     private func searchMembers() async {
         guard !searchText.isEmpty else {
             try? await memberService.loadMembers()
             return
         }
-        
+
         try? await memberService.searchMembers(query: searchText)
     }
 }
@@ -95,41 +95,41 @@ struct MembersView: View {
 struct MemberRow: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let member: Member
-    
+
     var body: some View {
         HStack(spacing: CareSphereSpacing.md) {
             CareSphereAvatar(
-                imageURL: member.profileImageURL,
+                imageURL: member.profileImageURL.flatMap { URL(string: $0) },
                 name: member.fullName
             )
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(member.fullName)
                     .font(CareSphereTypography.bodyMedium)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 if let email = member.email {
                     Text(email)
                         .font(CareSphereTypography.bodySmall)
                         .foregroundColor(theme.colors.onSurface.opacity(0.7))
                 }
-                
+
                 if let lastContact = member.lastContactDate {
                     Text("Last contact: \(lastContact, style: .relative)")
                         .font(CareSphereTypography.caption)
                         .foregroundColor(theme.colors.onSurface.opacity(0.6))
                 }
             }
-            
+
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 4) {
                 CareSphereStatusBadge(
                     member.status.displayName,
                     color: statusColor(for: member.status),
                     size: .small
                 )
-                
+
                 if !member.tags.isEmpty {
                     Text("\(member.tags.count) tag\(member.tags.count == 1 ? "" : "s")")
                         .font(CareSphereTypography.caption)
@@ -139,7 +139,7 @@ struct MemberRow: View {
         }
         .padding(.vertical, CareSphereSpacing.xs)
     }
-    
+
     private func statusColor(for status: MemberStatus) -> CareSphereStatusBadge.StatusColor {
         switch status {
         case .active: return .success
@@ -155,9 +155,9 @@ struct MemberRow: View {
 struct MessagesView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var messageService: MessageService
-    
+
     @State private var showingComposer = false
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -206,7 +206,7 @@ struct MessagesView: View {
 struct MessageRow: View {
     @EnvironmentObject private var theme: CareSphereTheme
     let message: Message
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.sm) {
             HStack {
@@ -216,38 +216,38 @@ struct MessageRow: View {
                             .font(CareSphereTypography.bodyMedium)
                             .foregroundColor(theme.colors.onBackground)
                     }
-                    
+
                     Text(message.content)
                         .font(CareSphereTypography.bodySmall)
                         .foregroundColor(theme.colors.onSurface.opacity(0.7))
                         .lineLimit(2)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 4) {
                     CareSphereStatusBadge(
                         message.status.displayName,
                         color: statusColor(for: message.status),
                         size: .small
                     )
-                    
+
                     Text("\(message.recipientCount) recipients")
                         .font(CareSphereTypography.caption)
                         .foregroundColor(theme.colors.onSurface.opacity(0.6))
                 }
             }
-            
+
             HStack {
                 Image(systemName: message.channel.icon)
                     .foregroundColor(theme.colors.primary)
-                
+
                 Text(message.channel.displayName)
                     .font(CareSphereTypography.caption)
                     .foregroundColor(theme.colors.onSurface.opacity(0.6))
-                
+
                 Spacer()
-                
+
                 if let sentAt = message.sentAt {
                     Text(sentAt, style: .relative)
                         .font(CareSphereTypography.caption)
@@ -261,7 +261,7 @@ struct MessageRow: View {
         }
         .padding(.vertical, CareSphereSpacing.xs)
     }
-    
+
     private func statusColor(for status: MessageStatus) -> CareSphereStatusBadge.StatusColor {
         switch status {
         case .sent: return .success
@@ -277,17 +277,17 @@ struct MessageRow: View {
 /// Analytics view
 struct AnalyticsView: View {
     @EnvironmentObject private var theme: CareSphereTheme
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: CareSphereSpacing.lg) {
                     // Period selector
                     periodSelector
-                    
+
                     // Key metrics
                     keyMetricsSection
-                    
+
                     // Charts placeholder
                     chartsSection
                 }
@@ -297,14 +297,14 @@ struct AnalyticsView: View {
             .navigationTitle("Analytics")
         }
     }
-    
+
     private var periodSelector: some View {
         CareSphereCard {
             VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
                 Text("Time Period")
                     .font(CareSphereTypography.titleSmall)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: CareSphereSpacing.sm) {
                         ForEach(AnalyticsPeriod.allCases.prefix(6), id: \.rawValue) { period in
@@ -319,15 +319,18 @@ struct AnalyticsView: View {
             }
         }
     }
-    
+
     private var keyMetricsSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             Text("Key Metrics")
                 .font(CareSphereTypography.titleMedium)
                 .foregroundColor(theme.colors.onBackground)
                 .padding(.horizontal, CareSphereSpacing.sm)
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: CareSphereSpacing.md) {
+
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible()), count: 2),
+                spacing: CareSphereSpacing.md
+            ) {
                 MetricCard(
                     title: "Member Growth",
                     value: "+12",
@@ -335,7 +338,7 @@ struct AnalyticsView: View {
                     icon: "arrow.up.right",
                     color: .success
                 )
-                
+
                 MetricCard(
                     title: "Message Delivery",
                     value: "94.2%",
@@ -343,7 +346,7 @@ struct AnalyticsView: View {
                     icon: "arrow.up.right",
                     color: .success
                 )
-                
+
                 MetricCard(
                     title: "Engagement Rate",
                     value: "76.4%",
@@ -351,7 +354,7 @@ struct AnalyticsView: View {
                     icon: "arrow.down.right",
                     color: .warning
                 )
-                
+
                 MetricCard(
                     title: "Response Time",
                     value: "2.3h",
@@ -362,20 +365,20 @@ struct AnalyticsView: View {
             }
         }
     }
-    
+
     private var chartsSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             Text("Trends")
                 .font(CareSphereTypography.titleMedium)
                 .foregroundColor(theme.colors.onBackground)
                 .padding(.horizontal, CareSphereSpacing.sm)
-            
+
             CareSphereCard {
                 VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
                     Text("Member Growth Over Time")
                         .font(CareSphereTypography.titleSmall)
                         .foregroundColor(theme.colors.onBackground)
-                    
+
                     // Chart placeholder
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)
                         .fill(theme.colors.primary.opacity(0.1))
@@ -387,13 +390,13 @@ struct AnalyticsView: View {
                         )
                 }
             }
-            
+
             CareSphereCard {
                 VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
                     Text("Message Performance")
                         .font(CareSphereTypography.titleSmall)
                         .foregroundColor(theme.colors.onBackground)
-                    
+
                     // Chart placeholder
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)
                         .fill(theme.colors.secondary.opacity(0.1))
@@ -416,7 +419,7 @@ struct MetricCard: View {
     let percentage: String
     let icon: String
     let color: CareSphereStatusBadge.StatusColor
-    
+
     var body: some View {
         CareSphereCard(padding: CareSphereSpacing.md) {
             VStack(alignment: .leading, spacing: CareSphereSpacing.sm) {
@@ -424,17 +427,17 @@ struct MetricCard: View {
                     Text(title)
                         .font(CareSphereTypography.bodySmall)
                         .foregroundColor(theme.colors.onSurface.opacity(0.7))
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: icon)
                         .foregroundColor(color.color(in: theme))
                 }
-                
+
                 Text(value)
                     .font(CareSphereTypography.headlineSmall)
                     .foregroundColor(theme.colors.onBackground)
-                
+
                 Text(percentage)
                     .font(CareSphereTypography.caption)
                     .foregroundColor(color.color(in: theme))
@@ -447,39 +450,41 @@ struct MetricCard: View {
 struct SettingsView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var authService: AuthenticationService
-    
+
     var body: some View {
         NavigationView {
             Form {
                 Section("Profile") {
                     HStack {
                         CareSphereAvatar(
-                            imageURL: authService.currentUser?.profileImageURL,
+                            imageURL: authService.currentUser?.profileImageURL.flatMap {
+                                URL(string: $0)
+                            },
                             name: authService.currentUser?.fullName ?? "User",
                             size: 50
                         )
-                        
+
                         VStack(alignment: .leading) {
                             Text(authService.currentUser?.fullName ?? "Unknown User")
                                 .font(CareSphereTypography.bodyMedium)
-                            
+
                             Text(authService.currentUser?.email ?? "")
                                 .font(CareSphereTypography.bodySmall)
                                 .foregroundColor(theme.colors.onSurface.opacity(0.7))
                         }
-                        
+
                         Spacer()
                     }
                     .padding(.vertical, CareSphereSpacing.xs)
                 }
-                
+
                 Section("Appearance") {
                     Picker("Color Scheme", selection: .constant(theme.currentColorScheme)) {
                         Text("Light").tag(ColorScheme.light)
                         Text("Dark").tag(ColorScheme.dark)
                     }
                 }
-                
+
                 Section("About") {
                     HStack {
                         Text("Version")
@@ -487,7 +492,7 @@ struct SettingsView: View {
                         Text("1.0.0")
                             .foregroundColor(theme.colors.onSurface.opacity(0.7))
                     }
-                    
+
                     HStack {
                         Text("Build")
                         Spacer()
@@ -495,7 +500,7 @@ struct SettingsView: View {
                             .foregroundColor(theme.colors.onSurface.opacity(0.7))
                     }
                 }
-                
+
                 Section {
                     Button("Sign Out") {
                         Task {
@@ -515,7 +520,7 @@ struct SettingsView: View {
 
 struct AddMemberView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             Text("Add Member Form")
@@ -527,7 +532,7 @@ struct AddMemberView: View {
                             dismiss()
                         }
                     }
-                    
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Save") {
                             dismiss()
@@ -541,7 +546,7 @@ struct AddMemberView: View {
 struct MemberDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let member: Member
-    
+
     var body: some View {
         NavigationView {
             Text("Member Detail: \(member.fullName)")
@@ -560,7 +565,7 @@ struct MemberDetailView: View {
 
 struct MessageComposerView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             Text("Message Composer")
@@ -572,7 +577,7 @@ struct MessageComposerView: View {
                             dismiss()
                         }
                     }
-                    
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Send") {
                             dismiss()
