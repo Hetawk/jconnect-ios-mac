@@ -10,12 +10,22 @@ struct APIConfiguration {
     let retryAttempts: Int
     let retryDelay: TimeInterval
 
-    static let shared = APIConfiguration(
-        baseURL: URL(string: "https://api.caresphere.app")!,
-        timeout: 30.0,
-        retryAttempts: 3,
-        retryDelay: 1.0
-    )
+    static let shared: APIConfiguration = {
+        // Read API_BASE_URL from environment (.env file)
+        let apiURLString =
+            Env.string("API_BASE_URL", default: "https://api.caresphere.app")
+            ?? "https://api.caresphere.app"
+        guard let url = URL(string: apiURLString) else {
+            fatalError("Invalid API_BASE_URL in environment: \(apiURLString)")
+        }
+
+        return APIConfiguration(
+            baseURL: url,
+            timeout: 30.0,
+            retryAttempts: 3,
+            retryDelay: 1.0
+        )
+    }()
 }
 
 // MARK: - API Error Handling
