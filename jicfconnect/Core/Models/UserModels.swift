@@ -311,6 +311,16 @@ struct RegisterRequest: Codable {
     let displayName: String?
 }
 
+struct RefreshTokenRequest: Codable {
+    let refreshToken: String
+}
+
+struct RefreshTokenResponse: Codable {
+    let accessToken: String
+    let refreshToken: String?
+    let expiresIn: Int?
+}
+
 struct AuthenticationError: Error, LocalizedError {
     let code: String
     let message: String

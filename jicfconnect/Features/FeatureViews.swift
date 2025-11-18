@@ -50,8 +50,18 @@ struct MembersView: View {
                     .background(theme.colors.background)
                 }
             }
+            .padding(.top, CareSphereSpacing.sm)
             .background(theme.colors.background)
             .navigationTitle("Members")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(theme.colors.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(
+                theme.currentColorScheme == .dark ? .dark : .light,
+                for: .navigationBar
+            )
+#endif
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Add") {
@@ -72,6 +82,7 @@ struct MembersView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private var filteredMembers: [Member] {
@@ -187,8 +198,18 @@ struct MessagesView: View {
                     .background(theme.colors.background)
                 }
             }
+            .padding(.top, CareSphereSpacing.sm)
             .background(theme.colors.background)
             .navigationTitle("Messages")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(theme.colors.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(
+                theme.currentColorScheme == .dark ? .dark : .light,
+                for: .navigationBar
+            )
+#endif
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Compose") {
@@ -206,6 +227,7 @@ struct MessagesView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
 
@@ -297,11 +319,23 @@ struct AnalyticsView: View {
                     // Charts placeholder
                     chartsSection
                 }
-                .padding(CareSphereSpacing.lg)
+                .padding(.horizontal, CareSphereSpacing.lg)
+                .padding(.top, CareSphereSpacing.sm)
+                .padding(.bottom, CareSphereSpacing.md)
             }
             .background(theme.colors.background)
             .navigationTitle("Analytics")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(theme.colors.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(
+                theme.currentColorScheme == .dark ? .dark : .light,
+                for: .navigationBar
+            )
+#endif
         }
+        .navigationViewStyle(.stack)
     }
 
     private var periodSelector: some View {
@@ -519,7 +553,17 @@ struct SettingsView: View {
             .background(theme.colors.background)
             .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(theme.colors.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(
+                theme.currentColorScheme == .dark ? .dark : .light,
+                for: .navigationBar
+            )
+#endif
         }
+        .navigationViewStyle(.stack)
     }
 }
 

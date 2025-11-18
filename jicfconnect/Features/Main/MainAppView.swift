@@ -35,12 +35,36 @@ struct MainAppView: View {
         }
         .accentColor(theme.colors.secondary)
         .onAppear {
-            let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.backgroundColor = UIColor(theme.colors.surface)
-            UITabBar.appearance().standardAppearance = appearance
-            UITabBar.appearance().scrollEdgeAppearance = appearance
+            updateTabAppearance()
+            updateNavigationAppearance()
         }
+        .onReceive(theme.$currentColorScheme) { _ in
+            updateTabAppearance()
+            updateNavigationAppearance()
+        }
+    }
+
+    private func updateTabAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = UIColor(theme.colors.surface)
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+        UITabBar.appearance().tintColor = UIColor(theme.colors.secondary)
+    }
+
+    private func updateNavigationAppearance() {
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = UIColor(theme.colors.surface)
+        let titleColor = UIColor(theme.colors.onSurface)
+        navAppearance.titleTextAttributes = [.foregroundColor: titleColor]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: titleColor]
+
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = UIColor(theme.colors.secondary)
     }
 }
 

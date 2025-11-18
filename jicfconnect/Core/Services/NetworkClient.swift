@@ -287,9 +287,19 @@ class NetworkClient: ObservableObject {
                 return try handleSuccessResponse(data: data)
             case 401:
                 // Try to refresh token if available
-                if let refreshToken = refreshToken, attempt == 1 {
+                if refreshToken != nil, attempt == 1 {
                     try await refreshAuthToken()
-                    return try await performRequestWithRetry(request: request, attempt: attempt + 1)
+                    var refreshedRequest = request
+                    if let authToken = authToken {
+                        refreshedRequest.setValue(
+                            "Bearer \(authToken)",
+                            forHTTPHeaderField: "Authorization"
+                        )
+                    }
+                    return try await performRequestWithRetry(
+                        request: refreshedRequest,
+                        attempt: attempt + 1
+                    )
                 }
                 throw APIError.unauthorized
             case 403:
@@ -392,10 +402,33 @@ class NetworkClient: ObservableObject {
             throw APIError.unauthorized
         }
 
-        // Implementation would call refresh token endpoint
-        // For now, just clear tokens to force re-login
-        clearAuthTokens()
-        throw APIError.unauthorized
+        let url = APIConfiguration.shared.baseURL.appendingPathComponent(
+            Endpoints.Auth.refresh.path
+        )
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.POST.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload = RefreshTokenRequest(refreshToken: refreshToken)
+        request.httpBody = try encoder.encode(payload)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.unknown(NSError(domain: "Invalid response", code: 0))
+        }
+
+        switch httpResponse.statusCode {
+        case 200...299:
+            let refreshResponse = try decoder.decode(RefreshTokenResponse.self, from: data)
+            let newRefreshToken = refreshResponse.refreshToken ?? refreshToken
+            setAuthToken(refreshResponse.accessToken, refreshToken: newRefreshToken)
+        case 401:
+            throw APIError.unauthorized
+        default:
+            let message = try? extractErrorMessage(from: data)
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
+        }
     }
 
     // MARK: - Network Monitoring

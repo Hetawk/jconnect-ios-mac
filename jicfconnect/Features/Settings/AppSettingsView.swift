@@ -153,8 +153,17 @@ struct AppSettingsView: View {
             .background(theme.colors.background)
             .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(theme.colors.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(
+                theme.currentColorScheme == .dark ? .dark : .light,
+                for: .navigationBar
+            )
+#endif
         }
+        .navigationViewStyle(.stack)
         .sheet(isPresented: $showingSenderSettings) {
             SenderSettingsView()
         }

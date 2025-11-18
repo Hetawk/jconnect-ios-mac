@@ -34,6 +34,10 @@ struct DashboardView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(theme.colors.surface, for: .navigationBar)
                 .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarColorScheme(
+                    theme.currentColorScheme == .dark ? .dark : .light,
+                    for: .navigationBar
+                )
             #endif
             .refreshable {
                 await loadDashboardData()
