@@ -91,10 +91,10 @@ struct SignUpView: View {
         Task {
             isLoading = true
             do {
-                try await authService.register(
-                    fullName: fullName,
+                _ = await authService.register(
                     email: email,
-                    password: password
+                    password: password,
+                    fullName: fullName
                 )
                 dismiss()
             } catch {

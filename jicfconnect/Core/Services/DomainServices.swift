@@ -70,10 +70,8 @@ class AuthenticationService: ObservableObject {
     func register(
         email: String,
         password: String,
-        firstName: String,
-        lastName: String,
-        organizationId: String? = nil,
-        organizationName: String? = nil
+        fullName: String,
+        displayName: String? = nil
     ) async -> Bool {
         isLoading = true
         error = nil
@@ -82,10 +80,8 @@ class AuthenticationService: ObservableObject {
             let request = RegisterRequest(
                 email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
                 password: password,
-                firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
-                lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines),
-                organizationId: organizationId,
-                organizationName: organizationName
+                fullName: fullName.trimmingCharacters(in: .whitespacesAndNewlines),
+                displayName: displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
 
             let response: LoginResponse = try await networkClient.request(
@@ -112,20 +108,6 @@ class AuthenticationService: ObservableObject {
             isLoading = false
             return false
         }
-    }
-
-    // Convenience method for full name
-    func register(fullName: String, email: String, password: String) async throws {
-        let names = fullName.split(separator: " ")
-        let firstName = String(names.first ?? "")
-        let lastName = names.count > 1 ? String(names[1...].joined(separator: " ")) : ""
-
-        try await register(
-            email: email,
-            password: password,
-            firstName: firstName,
-            lastName: lastName
-        )
     }
 
     func logout() async {

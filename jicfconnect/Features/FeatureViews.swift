@@ -457,7 +457,7 @@ struct SettingsView: View {
                 Section("Profile") {
                     HStack {
                         CareSphereAvatar(
-                            imageURL: authService.currentUser?.profileImageURL.flatMap {
+                            imageURL: authService.currentUser?.avatarUrl.flatMap {
                                 URL(string: $0)
                             },
                             name: authService.currentUser?.fullName ?? "User",

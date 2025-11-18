@@ -6,24 +6,58 @@ import Foundation
 struct User: Codable, Identifiable, Equatable {
     let id: String
     let email: String
-    let firstName: String
-    let lastName: String
+    let fullName: String
+    let displayName: String?
+    let avatarUrl: String?
     let role: UserRole
-    let organizationId: String
-    let isActive: Bool
-    let profileImageURL: String?
-    let phoneNumber: String?
-    let createdAt: Date
-    let updatedAt: Date
-    let lastLoginAt: Date?
+    let status: UserStatus
+    let emailVerified: Bool
+    let lastLoginAt: String?
+    let createdAt: String
+    let updatedAt: String
     
-    // Computed properties
-    var fullName: String {
-        return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+    enum CodingKeys: String, CodingKey {
+        case id, email, role, status
+        case fullName = "full_name"
+        case displayName = "display_name"
+        case avatarUrl = "avatar_url"
+        case emailVerified = "email_verified"
+        case lastLoginAt = "last_login_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
     }
     
+    // Computed properties for backward compatibility
+    var firstName: String {
+        let components = fullName.split(separator: " ")
+        return components.first.map(String.init) ?? fullName
+    }
+    
+    var lastName: String {
+        let components = fullName.split(separator: " ")
+        return components.count > 1 ? components.dropFirst().joined(separator: " ") : ""
+    }
+    
+    var effectiveDisplayName: String {
+        return displayName ?? fullName
+    }
+}
+
+/// User status enumeration
+enum UserStatus: String, Codable, CaseIterable {
+    case active = "active"
+    case inactive = "inactive"
+    case suspended = "suspended"
+    
     var displayName: String {
-        return fullName.isEmpty ? email : fullName
+        switch self {
+        case .active:
+            return "Active"
+        case .inactive:
+            return "Inactive"
+        case .suspended:
+            return "Suspended"
+        }
     }
 }
 
@@ -273,10 +307,8 @@ struct LoginResponse: Codable {
 struct RegisterRequest: Codable {
     let email: String
     let password: String
-    let firstName: String
-    let lastName: String
-    let organizationId: String?
-    let organizationName: String?  // For creating new organization
+    let fullName: String
+    let displayName: String?
 }
 
 struct AuthenticationError: Error, LocalizedError {
@@ -314,15 +346,14 @@ extension User {
     static let preview = User(
         id: "preview-user-id",
         email: "demo@caresphere.com",
-        firstName: "Demo",
-        lastName: "User",
+        fullName: "Demo User",
+        displayName: "Demo",
+        avatarUrl: nil,
         role: .admin,
-        organizationId: "preview-org-id",
-        isActive: true,
-        profileImageURL: nil,
-        phoneNumber: "+1-555-0123",
-        createdAt: Date(),
-        updatedAt: Date(),
-        lastLoginAt: Date()
+        status: .active,
+        emailVerified: true,
+        lastLoginAt: nil,
+        createdAt: "2025-11-18T00:00:00",
+        updatedAt: "2025-11-18T00:00:00"
     )
 }

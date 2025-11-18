@@ -170,7 +170,7 @@ struct ProfileRow: View {
                         .fill(theme.colors.primary.opacity(0.1))
                         .frame(width: 60, height: 60)
                     
-                    if let imageURL = user.profileImageURL {
+                    if let imageURL = user.avatarUrl {
                         AsyncImage(url: URL(string: imageURL)) { image in
                             image
                                 .resizable()
@@ -191,7 +191,7 @@ struct ProfileRow: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(user.displayName)
+                    Text(user.effectiveDisplayName)
                         .font(CareSphereTypography.titleMedium)
                         .fontWeight(.semibold)
                         .foregroundColor(theme.colors.onSurface)
@@ -366,7 +366,7 @@ struct ProfileEditSheet: View {
     private func loadCurrentValues() {
         firstName = user.firstName
         lastName = user.lastName
-        phoneNumber = user.phoneNumber ?? ""
+        phoneNumber = ""  // Phone number not in current API model
     }
     
     private func updateProfile() async {

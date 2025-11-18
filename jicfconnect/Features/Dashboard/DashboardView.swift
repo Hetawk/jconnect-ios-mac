@@ -62,7 +62,7 @@ struct DashboardView: View {
                 Spacer()
 
                 CareSphereAvatar(
-                    imageURL: authService.currentUser?.profileImageURL.flatMap { URL(string: $0) },
+                    imageURL: authService.currentUser?.avatarUrl.flatMap { URL(string: $0) },
                     name: authService.currentUser?.fullName ?? "User",
                     size: 60
                 )
