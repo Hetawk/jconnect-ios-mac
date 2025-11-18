@@ -48,7 +48,7 @@ class AuthenticationService: ObservableObject {
             )
 
             // Store authentication tokens
-            networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
+            networkClient.setAuthToken(response.accessToken, refreshToken: response.refreshToken)
 
             // Set current user
             currentUser = response.user
@@ -95,7 +95,7 @@ class AuthenticationService: ObservableObject {
             )
 
             // Store authentication tokens
-            networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
+            networkClient.setAuthToken(response.accessToken, refreshToken: response.refreshToken)
 
             // Set current user
             currentUser = response.user

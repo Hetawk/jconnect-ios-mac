@@ -265,9 +265,9 @@ struct LoginRequest: Codable {
 
 struct LoginResponse: Codable {
     let user: User
-    let token: String
+    let accessToken: String
     let refreshToken: String
-    let expiresAt: Date
+    let expiresIn: Int
 }
 
 struct RegisterRequest: Codable {
