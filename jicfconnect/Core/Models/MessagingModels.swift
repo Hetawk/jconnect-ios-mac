@@ -484,3 +484,234 @@ enum MessageSortField: String, Codable, CaseIterable {
         }
     }
 }
+
+// MARK: - Sender Settings Models
+
+/// Sender identity settings for messages
+struct SenderSetting: Codable, Identifiable, Equatable {
+    let id: String
+    let scope: SettingScope
+    let referenceId: String?
+    let name: String?
+    let email: String?
+    let phone: String?
+    let createdAt: Date
+    let updatedAt: Date
+    
+    var displayIdentity: String {
+        var parts: [String] = []
+        if let name = name, !name.isEmpty {
+            parts.append(name)
+        }
+        if let email = email, !email.isEmpty {
+            parts.append("<\(email)>")
+        }
+        return parts.isEmpty ? "No sender configured" : parts.joined(separator: " ")
+    }
+}
+
+/// Scope levels for sender settings
+enum SettingScope: String, Codable, CaseIterable {
+    case global = "GLOBAL"
+    case organization = "ORGANIZATION"
+    case user = "USER"
+
+    var displayName: String {
+        switch self {
+        case .global:
+            return "System Default"
+        case .organization:
+            return "Organization"
+        case .user:
+            return "Personal"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .global:
+            return "System-wide default sender settings"
+        case .organization:
+            return "Shared settings for your organization"
+        case .user:
+            return "Personal sender settings that override others"
+        }
+    }
+    
+    var priority: Int {
+        switch self {
+        case .user:
+            return 0  // Highest priority
+        case .organization:
+            return 1
+        case .global:
+            return 2  // Lowest priority
+        }
+    }
+}
+
+/// Resolved sender settings with cascade information
+struct ResolvedSenderSettings: Codable, Equatable {
+    let name: String?
+    let email: String?
+    let phone: String?
+    let layers: SettingsLayers
+    
+    var displayIdentity: String {
+        var parts: [String] = []
+        if let name = name, !name.isEmpty {
+            parts.append(name)
+        }
+        if let email = email, !email.isEmpty {
+            parts.append("<\(email)>")
+        }
+        return parts.isEmpty ? "No sender configured" : parts.joined(separator: " ")
+    }
+    
+    var effectiveSource: SettingScope? {
+        if layers.user.name != nil || layers.user.email != nil || layers.user.phone != nil {
+            return .user
+        }
+        if layers.organization.name != nil || layers.organization.email != nil || layers.organization.phone != nil {
+            return .organization
+        }
+        if layers.global.name != nil || layers.global.email != nil || layers.global.phone != nil {
+            return .global
+        }
+        if layers.environment.name != nil || layers.environment.email != nil || layers.environment.phone != nil {
+            return nil  // Environment fallback
+        }
+        return nil
+    }
+}
+
+struct SettingsLayers: Codable, Equatable {
+    let user: SettingsLayer
+    let organization: SettingsLayer
+    let global: SettingsLayer
+    let environment: SettingsLayer
+}
+
+struct SettingsLayer: Codable, Equatable {
+    let name: String?
+    let email: String?
+    let phone: String?
+}
+
+// MARK: - Preview Extensions
+
+extension Message {
+    static let preview = Message(
+        id: "preview-message-id",
+        organizationId: "preview-org-id",
+        senderId: "preview-sender-id",
+        subject: "Preview Message",
+        content: "This is a preview message for testing purposes.",
+        messageType: .personal,
+        priority: .normal,
+        channel: .email,
+        templateId: nil,
+        recipients: [MessageRecipient.preview],
+        scheduledAt: nil,
+        sentAt: Date(),
+        status: .sent,
+        metadata: [:],
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+}
+
+extension MessageRecipient {
+    static let preview = MessageRecipient(
+        id: "preview-recipient-id",
+        messageId: "preview-message-id",
+        memberId: "preview-member-id",
+        recipientType: .member,
+        contactInfo: ContactInfo(
+            email: "john.doe@example.com",
+            phoneNumber: "+1-555-0123",
+            whatsappNumber: nil,
+            pushToken: nil,
+            name: "John Doe"
+        ),
+        deliveryStatus: .delivered,
+        sentAt: Date(),
+        deliveredAt: Date(),
+        readAt: Date(),
+        errorMessage: nil,
+        metadata: [:]
+    )
+}
+
+extension MessageTemplate {
+    static let preview = MessageTemplate(
+        id: "preview-template-id",
+        organizationId: "preview-org-id",
+        name: "Welcome Message",
+        description: "Welcome message for new members",
+        category: .welcome,
+        subject: "Welcome to CareSphere",
+        content: "Welcome {{firstName}}! We're excited to have you join our community.",
+        placeholders: [
+            TemplatePlaceholder(
+                name: "firstName",
+                displayName: "First Name",
+                type: .text,
+                isRequired: true,
+                defaultValue: nil,
+                description: "Member's first name"
+            )
+        ],
+        supportedChannels: [.email, .sms],
+        isActive: true,
+        usageCount: 5,
+        createdBy: "preview-user-id",
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+}
+
+extension ResolvedSenderSettings {
+    static let preview = ResolvedSenderSettings(
+        name: "Demo User",
+        email: "demo@caresphere.com",
+        phone: "+1-555-0123",
+        layers: SettingsLayers(
+            user: SettingsLayer(
+                name: "Demo User",
+                email: "demo@caresphere.com",
+                phone: "+1-555-0123"
+            ),
+            organization: SettingsLayer(
+                name: "CareSphere Support",
+                email: "support@caresphere.com",
+                phone: "+1-800-CARE"
+            ),
+            global: SettingsLayer(
+                name: "System Default",
+                email: "noreply@caresphere.com",
+                phone: nil
+            ),
+            environment: SettingsLayer(
+                name: nil,
+                email: nil,
+                phone: nil
+            )
+        )
+    )
+}
+
+extension SenderSetting {
+    static let preview = SenderSetting(
+        id: "preview-sender-id",
+        scope: .user,
+        referenceId: "preview-user-id",
+        name: "Demo User",
+        email: "demo@caresphere.com",
+        phone: "+1-555-0123",
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+}
+
+

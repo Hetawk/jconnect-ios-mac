@@ -591,13 +591,13 @@ struct MessageComposerView: View {
 #Preview("Members") {
     MembersView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(MemberService(authService: AuthenticationService()))
+        .environmentObject(MemberService.shared)
 }
 
 #Preview("Messages") {
     MessagesView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(MessageService(authService: AuthenticationService()))
+        .environmentObject(MessageService.shared)
 }
 
 #Preview("Analytics") {
@@ -608,5 +608,5 @@ struct MessageComposerView: View {
 #Preview("Settings") {
     SettingsView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(AuthenticationService())
+        .environmentObject(AuthenticationService.shared)
 }

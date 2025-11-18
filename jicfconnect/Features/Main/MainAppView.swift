@@ -4,17 +4,7 @@ import SwiftUI
 struct MainAppView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var authService: AuthenticationService
-    
-    @StateObject private var memberService: MemberService
-    @StateObject private var messageService: MessageService
-    
-    init() {
-        // Initialize services with temporary auth service
-        // Will be updated when the real authService becomes available
-        let tempAuthService = AuthenticationService()
-        self._memberService = StateObject(wrappedValue: MemberService(authService: tempAuthService))
-        self._messageService = StateObject(wrappedValue: MessageService(authService: tempAuthService))
-    }
+    @EnvironmentObject private var settingsService: SenderSettingsService
     
     var body: some View {
         TabView {
@@ -38,27 +28,12 @@ struct MainAppView: View {
                     TabItemView(icon: "chart.bar", text: "Analytics")
                 }
             
-            SettingsView()
+            AppSettingsView()
                 .tabItem {
                     TabItemView(icon: "gear", text: "Settings")
                 }
         }
         .accentColor(theme.colors.primary)
-        .environmentObject(memberService)
-        .environmentObject(messageService)
-        .onAppear {
-            // Update services with the actual authService when view appears
-            updateServiceDependencies()
-        }
-        .onChange(of: authService.isAuthenticated) { _ in
-            // Re-inject auth service if authentication state changes
-            updateServiceDependencies()
-        }
-    }
-    
-    private func updateServiceDependencies() {
-        memberService.updateAuthService(authService)
-        messageService.updateAuthService(authService)
     }
 }
 
@@ -78,5 +53,6 @@ struct TabItemView: View {
 #Preview {
     MainAppView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(AuthenticationService())
+        .environmentObject(AuthenticationService.shared)
+        .environmentObject(SenderSettingsService.shared)
 }

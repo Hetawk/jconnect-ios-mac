@@ -6,6 +6,8 @@ import Foundation
 /// Service for handling user authentication and session management
 @MainActor
 class AuthenticationService: ObservableObject {
+    @MainActor static let shared = AuthenticationService()
+    
     @Published var currentUser: User?
     @Published var isAuthenticated = false
     @Published var isLoading = false
@@ -14,11 +16,12 @@ class AuthenticationService: ObservableObject {
     private let networkClient: NetworkClient
     private var cancellables = Set<AnyCancellable>()
 
-    init(networkClient: NetworkClient = .shared) {
-        self.networkClient = networkClient
-
+    private init() {
+        self.networkClient = NetworkClient.shared
+        
         // Check if user is already authenticated
-        if networkClient.isAuthenticated {
+        isAuthenticated = networkClient.isAuthenticated
+        if isAuthenticated {
             Task {
                 await loadCurrentUser()
             }
@@ -27,26 +30,41 @@ class AuthenticationService: ObservableObject {
 
     // MARK: - Authentication Methods
 
-    func login(email: String, password: String, rememberMe: Bool = true) async throws {
+    func login(email: String, password: String, rememberMe: Bool = true) async -> Bool {
         isLoading = true
         error = nil
 
-        defer { isLoading = false }
+        do {
+            let request = LoginRequest(
+                email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                password: password,
+                rememberMe: rememberMe
+            )
 
-        let request = LoginRequest(email: email, password: password, rememberMe: rememberMe)
+            let response: LoginResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.login,
+                method: .POST,
+                body: request
+            )
 
-        let response: LoginResponse = try await networkClient.request(
-            endpoint: Endpoints.Auth.login,
-            method: .POST,
-            body: request
-        )
+            // Store authentication tokens
+            networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
 
-        // Store authentication tokens
-        networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
+            // Set current user
+            currentUser = response.user
 
-        // Set current user
-        currentUser = response.user
-        isAuthenticated = true
+            isLoading = false
+            return true
+
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return false
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return false
+        }
     }
 
     func register(
@@ -56,33 +74,44 @@ class AuthenticationService: ObservableObject {
         lastName: String,
         organizationId: String? = nil,
         organizationName: String? = nil
-    ) async throws {
+    ) async -> Bool {
         isLoading = true
         error = nil
 
-        defer { isLoading = false }
+        do {
+            let request = RegisterRequest(
+                email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                password: password,
+                firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
+                lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines),
+                organizationId: organizationId,
+                organizationName: organizationName
+            )
 
-        let request = RegisterRequest(
-            email: email,
-            password: password,
-            firstName: firstName,
-            lastName: lastName,
-            organizationId: organizationId,
-            organizationName: organizationName
-        )
+            let response: LoginResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.register,
+                method: .POST,
+                body: request
+            )
 
-        let response: LoginResponse = try await networkClient.request(
-            endpoint: Endpoints.Auth.register,
-            method: .POST,
-            body: request
-        )
+            // Store authentication tokens
+            networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
 
-        // Store authentication tokens
-        networkClient.setAuthToken(response.token, refreshToken: response.refreshToken)
+            // Set current user
+            currentUser = response.user
 
-        // Set current user
-        currentUser = response.user
-        isAuthenticated = true
+            isLoading = false
+            return true
+
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return false
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return false
+        }
     }
 
     // Convenience method for full name
@@ -163,6 +192,24 @@ class AuthenticationService: ObservableObject {
             throw APIError.forbidden
         }
     }
+    
+    /// Check if current user can manage settings at scope
+    func canManageSettingsScope(_ scope: SettingScope) -> Bool {
+        return SenderSettingsService.shared.canManageScope(scope, user: currentUser)
+    }
+    
+    // MARK: - Helper Methods
+    
+    // MARK: - Preview Extension
+    
+    static let preview: AuthenticationService = {
+        let service = AuthenticationService.shared
+        Task { @MainActor in
+            service.currentUser = User.preview
+            service.isAuthenticated = true
+        }
+        return service
+    }()
 }
 
 // MARK: - Member Service
@@ -170,22 +217,20 @@ class AuthenticationService: ObservableObject {
 /// Service for member management operations
 @MainActor
 class MemberService: ObservableObject {
+    @MainActor static let shared = MemberService()
+    
     @Published var members: [Member] = []
     @Published var selectedMember: Member?
     @Published var isLoading = false
     @Published var error: APIError?
 
-    private var networkClient: NetworkClient
-    private var authService: AuthenticationService
-
-    init(networkClient: NetworkClient = .shared, authService: AuthenticationService) {
-        self.networkClient = networkClient
-        self.authService = authService
+    private let networkClient: NetworkClient
+    private var authService: AuthenticationService {
+        return AuthenticationService.shared
     }
 
-    func updateAuthService(_ authService: AuthenticationService) {
-        self.authService = authService
-        // Update networkClient if needed to use new auth service
+    private init() {
+        self.networkClient = NetworkClient.shared
     }
 
     // MARK: - Member CRUD Operations
@@ -357,6 +402,17 @@ class MemberService: ObservableObject {
 
         _ = try await updateMember(id: id, request: request)
     }
+    
+    // MARK: - Preview Extension
+    
+    static let preview: MemberService = {
+        let service = MemberService.shared
+        Task { @MainActor in
+            service.members = [Member.preview]
+            service.selectedMember = Member.preview
+        }
+        return service
+    }()
 }
 
 // MARK: - Message Service
@@ -364,22 +420,20 @@ class MemberService: ObservableObject {
 /// Service for message management and communication
 @MainActor
 class MessageService: ObservableObject {
+    @MainActor static let shared = MessageService()
+    
     @Published var messages: [Message] = []
     @Published var templates: [MessageTemplate] = []
     @Published var isLoading = false
     @Published var error: APIError?
 
-    private var networkClient: NetworkClient
-    private var authService: AuthenticationService
-
-    init(networkClient: NetworkClient = .shared, authService: AuthenticationService) {
-        self.networkClient = networkClient
-        self.authService = authService
+    private let networkClient: NetworkClient
+    private var authService: AuthenticationService {
+        return AuthenticationService.shared
     }
 
-    func updateAuthService(_ authService: AuthenticationService) {
-        self.authService = authService
-        // Update networkClient if needed to use new auth service
+    private init() {
+        self.networkClient = NetworkClient.shared
     }
 
     // MARK: - Message Operations
@@ -528,6 +582,17 @@ class MessageService: ObservableObject {
         let message = try await createMessage(request)
         return try await sendMessage(id: message.id)
     }
+    
+    // MARK: - Preview Extension
+    
+    static let preview: MessageService = {
+        let service = MessageService.shared
+        Task { @MainActor in
+            service.messages = [Message.preview]
+            service.templates = [MessageTemplate.preview]
+        }
+        return service
+    }()
 }
 
 // MARK: - Supporting Models
@@ -550,4 +615,215 @@ struct CreateTemplateRequest: Codable {
     let content: String
     let placeholders: [TemplatePlaceholder]
     let supportedChannels: [MessageChannel]
+}
+
+// MARK: - Sender Settings Request Types
+
+struct SenderSettingRequest: Codable {
+    let name: String?
+    let email: String?
+    let phone: String?
+}
+
+// MARK: - Sender Settings Service
+
+/// Service for managing sender settings with multi-scope support
+@MainActor
+class SenderSettingsService: ObservableObject {
+    @MainActor static let shared = SenderSettingsService()
+    
+    private let networkClient = NetworkClient.shared
+    
+    @Published var resolvedSettings: ResolvedSenderSettings?
+    @Published var userSettings: SenderSetting?
+    @Published var organizationSettings: SenderSetting?
+    @Published var globalSettings: SenderSetting?
+    @Published var isLoading = false
+    @Published var error: APIError?
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    private init() {
+        // Load settings if already authenticated
+        if networkClient.isAuthenticated {
+            Task {
+                await loadResolvedSettings()
+            }
+        }
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Load the effective sender settings for the current user
+    func loadResolvedSettings() async {
+        guard networkClient.isAuthenticated else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let settings: ResolvedSenderSettings = try await networkClient.request(
+                endpoint: Endpoints.Settings.senderResolved,
+                method: .GET
+            )
+            
+            resolvedSettings = settings
+        } catch {
+            self.error = error as? APIError ?? .unknown(error)
+            print("Failed to load resolved sender settings: \(error)")
+        }
+        
+        isLoading = false
+    }
+    
+    /// Load sender settings for a specific scope
+    func loadSettings(for scope: SettingScope, referenceId: String? = nil) async -> SenderSetting? {
+        guard networkClient.isAuthenticated else { return nil }
+        
+        do {
+            let settings: [SenderSetting] = try await networkClient.request(
+                endpoint: Endpoints.Settings.senderList(
+                    scope: scope.rawValue,
+                    referenceId: referenceId
+                ),
+                method: .GET
+            )
+            
+            return settings.first
+        } catch {
+            self.error = error as? APIError ?? .unknown(error)
+            print("Failed to load \(scope) sender settings: \(error)")
+            return nil
+        }
+    }
+    
+    /// Load all available sender settings for the current user
+    func loadAllUserSettings() async {
+        guard networkClient.isAuthenticated else { return }
+        
+        isLoading = true
+        
+        // Load user-specific settings
+        userSettings = await loadSettings(for: .user)
+        
+        // Load organization settings (if user has access)
+        organizationSettings = await loadSettings(for: .organization)
+        
+        // Load global settings (if user has access)
+        globalSettings = await loadSettings(for: .global)
+        
+        isLoading = false
+    }
+    
+    /// Create or update sender settings
+    func saveSenderSettings(
+        scope: SettingScope,
+        name: String?,
+        email: String?,
+        phone: String?,
+        referenceId: String? = nil
+    ) async -> Bool {
+        guard networkClient.isAuthenticated else { return false }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let request = SenderSettingRequest(
+                name: name?.isEmpty == true ? nil : name,
+                email: email?.isEmpty == true ? nil : email,
+                phone: phone?.isEmpty == true ? nil : phone
+            )
+            
+            let _: SenderSetting = try await networkClient.request(
+                endpoint: Endpoints.Settings.senderUpdate(
+                    scope: scope.rawValue,
+                    referenceId: referenceId
+                ),
+                method: .PUT,
+                body: request
+            )
+            
+            // Refresh resolved settings and specific scope settings
+            await loadResolvedSettings()
+            await loadAllUserSettings()
+            
+            isLoading = false
+            return true
+            
+        } catch {
+            self.error = error as? APIError ?? .unknown(error)
+            print("Failed to save sender settings: \(error)")
+            isLoading = false
+            return false
+        }
+    }
+    
+    /// Delete sender settings for a specific scope
+    func deleteSenderSettings(
+        scope: SettingScope,
+        referenceId: String? = nil
+    ) async -> Bool {
+        guard networkClient.isAuthenticated else { return false }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let _: EmptyResponse = try await networkClient.request(
+                endpoint: Endpoints.Settings.senderDelete(
+                    scope: scope.rawValue,
+                    referenceId: referenceId
+                ),
+                method: .DELETE
+            )
+            
+            // Refresh settings
+            await loadResolvedSettings()
+            await loadAllUserSettings()
+            
+            isLoading = false
+            return true
+            
+        } catch {
+            self.error = error as? APIError ?? .unknown(error)
+            print("Failed to delete sender settings: \(error)")
+            isLoading = false
+            return false
+        }
+    }
+    
+    /// Check if user has permission to manage settings at a specific scope
+    func canManageScope(_ scope: SettingScope, user: User?) -> Bool {
+        guard let user = user else { return false }
+        
+        switch scope {
+        case .global:
+            return user.role == .superAdmin
+        case .organization:
+            return user.role == .superAdmin || user.role == .admin
+        case .user:
+            return true  // Users can always manage their own settings
+        }
+    }
+    
+    /// Clear all cached settings
+    func clearCache() {
+        resolvedSettings = nil
+        userSettings = nil
+        organizationSettings = nil
+        globalSettings = nil
+        error = nil
+    }
+    
+    // MARK: - Preview Extension
+    
+    static let preview: SenderSettingsService = {
+        let service = SenderSettingsService.shared
+        Task { @MainActor in
+            service.resolvedSettings = ResolvedSenderSettings.preview
+            service.userSettings = SenderSetting.preview
+        }
+        return service
+    }()
 }

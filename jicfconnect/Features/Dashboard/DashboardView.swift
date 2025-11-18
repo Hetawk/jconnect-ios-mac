@@ -4,12 +4,9 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var authService: AuthenticationService
-    @EnvironmentObject private var memberService: MemberService
-    @EnvironmentObject private var messageService: MessageService
+    @EnvironmentObject private var settingsService: SenderSettingsService
 
     @State private var isLoading = false
-    @State private var metrics: DashboardMetrics?
-    @State private var error: APIError?
 
     var body: some View {
         NavigationView {
@@ -86,28 +83,28 @@ struct DashboardView: View {
             ) {
                 StatCard(
                     title: "Total Members",
-                    value: "\(metrics?.memberMetrics.totalMembers ?? 0)",
+                    value: "156",
                     icon: "person.3.fill",
                     color: .primary
                 )
 
                 StatCard(
                     title: "Messages Sent",
-                    value: "\(metrics?.messageMetrics.messagesSent ?? 0)",
+                    value: "89",
                     icon: "envelope.fill",
                     color: .success
                 )
 
                 StatCard(
                     title: "Active Members",
-                    value: "\(metrics?.memberMetrics.activeMembers ?? 0)",
+                    value: "134",
                     icon: "person.fill.checkmark",
                     color: .secondary
                 )
 
                 StatCard(
                     title: "Need Follow-up",
-                    value: "\(metrics?.memberMetrics.needFollowUp ?? 0)",
+                    value: "8",
                     icon: "exclamationmark.circle.fill",
                     color: .warning
                 )
@@ -199,59 +196,9 @@ struct DashboardView: View {
         defer { isLoading = false }
 
         // Simulate loading dashboard metrics
-        // In real implementation, this would call the analytics service
         try? await Task.sleep(nanoseconds: 1_000_000_000)
-
-        // Mock data
-        metrics = DashboardMetrics(
-            organizationId: authService.currentUser?.organizationId ?? "",
-            period: .last30Days,
-            memberMetrics: MemberMetrics(
-                totalMembers: 156,
-                newMembers: 12,
-                activeMembers: 134,
-                inactiveMembers: 22,
-                needFollowUp: 8,
-                averageAge: 42.5,
-                membersByStatus: [
-                    .active: 134,
-                    .inactive: 22,
-                ],
-                memberGrowthTrend: [],
-                topTags: []
-            ),
-            messageMetrics: MessageMetrics(
-                totalMessages: 89,
-                messagesSent: 89,
-                deliveryRate: 0.94,
-                readRate: 0.76,
-                messagesByChannel: [:],
-                messagesByType: [:],
-                messageTrend: [],
-                topTemplates: []
-            ),
-            automationMetrics: AutomationMetrics(
-                totalRules: 15,
-                activeRules: 12,
-                totalExecutions: 234,
-                successfulExecutions: 221,
-                failedExecutions: 13,
-                successRate: 0.94,
-                rulesByTrigger: [:],
-                executionTrend: [],
-                topPerformingRules: []
-            ),
-            engagementMetrics: EngagementMetrics(
-                totalInteractions: 445,
-                averageResponseTime: 3600,
-                memberEngagementScore: 7.2,
-                engagementByChannel: [:],
-                engagementTrend: [],
-                topEngagedMembers: [],
-                lowEngagementMembers: []
-            ),
-            generatedAt: Date()
-        )
+        
+        // TODO: Load real dashboard data
     }
 }
 
@@ -389,7 +336,6 @@ private let sampleActivities = [
 #Preview {
     DashboardView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(AuthenticationService())
-        .environmentObject(MemberService(authService: AuthenticationService()))
-        .environmentObject(MessageService(authService: AuthenticationService()))
+        .environmentObject(AuthenticationService.preview)
+        .environmentObject(SenderSettingsService.shared)
 }

@@ -13,8 +13,8 @@ struct APIConfiguration {
     static let shared: APIConfiguration = {
         // Read API_BASE_URL from environment (.env file)
         let apiURLString =
-            Env.string("API_BASE_URL", default: "https://api.caresphere.app")
-            ?? "https://api.caresphere.app"
+            Env.string("API_BASE_URL", default: "https://caresphere.ekddigital.com")
+            ?? "https://caresphere.ekddigital.com"
         guard let url = URL(string: apiURLString) else {
             fatalError("Invalid API_BASE_URL in environment: \(apiURLString)")
         }
@@ -541,6 +541,41 @@ enum Endpoints {
             case .automation: return "/analytics/automation"
             case .engagement: return "/analytics/engagement"
             case .reports: return "/analytics/reports"
+            }
+        }
+    }
+    
+    // Settings
+    enum Settings: APIEndpoint {
+        case senderResolved
+        case senderList(scope: String?, referenceId: String?)
+        case senderCreate(scope: String, referenceId: String?)
+        case senderUpdate(scope: String, referenceId: String?)
+        case senderDelete(scope: String, referenceId: String?)
+
+        var path: String {
+            switch self {
+            case .senderResolved:
+                return "/settings/senders/resolved"
+            case .senderList(let scope, let referenceId):
+                var path = "/settings/senders"
+                var params: [String] = []
+                if let scope = scope { params.append("scope=\(scope)") }
+                if let referenceId = referenceId { params.append("reference_id=\(referenceId)") }
+                if !params.isEmpty { path += "?" + params.joined(separator: "&") }
+                return path
+            case .senderCreate(let scope, let referenceId):
+                var path = "/settings/senders?scope=\(scope)"
+                if let referenceId = referenceId { path += "&reference_id=\(referenceId)" }
+                return path
+            case .senderUpdate(let scope, let referenceId):
+                var path = "/settings/senders?scope=\(scope)"
+                if let referenceId = referenceId { path += "&reference_id=\(referenceId)" }
+                return path
+            case .senderDelete(let scope, let referenceId):
+                var path = "/settings/senders?scope=\(scope)"
+                if let referenceId = referenceId { path += "&reference_id=\(referenceId)" }
+                return path
             }
         }
     }

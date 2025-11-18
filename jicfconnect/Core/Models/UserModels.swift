@@ -307,3 +307,22 @@ struct AuthenticationError: Error, LocalizedError {
         message: "Organization is inactive"
     )
 }
+
+// MARK: - Preview Extensions
+
+extension User {
+    static let preview = User(
+        id: "preview-user-id",
+        email: "demo@caresphere.com",
+        firstName: "Demo",
+        lastName: "User",
+        role: .admin,
+        organizationId: "preview-org-id",
+        isActive: true,
+        profileImageURL: nil,
+        phoneNumber: "+1-555-0123",
+        createdAt: Date(),
+        updatedAt: Date(),
+        lastLoginAt: Date()
+    )
+}

@@ -10,7 +10,8 @@ import SwiftUI
 /// Main app coordinator handling authentication state and app flow
 struct ContentView: View {
     @StateObject private var theme = CareSphereTheme.shared
-    @StateObject private var authService = AuthenticationService()
+    @StateObject private var authService = AuthenticationService.shared
+    @StateObject private var settingsService = SenderSettingsService.shared
     
     var body: some View {
         Group {
@@ -22,9 +23,12 @@ struct ContentView: View {
         }
         .environmentObject(theme)
         .environmentObject(authService)
+        .environmentObject(settingsService)
         .task {
-            // Check for saved authentication state on app launch
-            await authService.checkAuthenticationState()
+            // Load current user if already authenticated
+            if authService.isAuthenticated {
+                await authService.loadCurrentUser()
+            }
         }
     }
 }

@@ -147,9 +147,12 @@ struct CareSphereColorPalette {
     let primaryVariant: Color
     let secondary: Color
     let secondaryVariant: Color
+    let tertiary: Color
     let surface: Color
     let background: Color
     let error: Color
+    let warning: Color
+    let success: Color
     let onPrimary: Color
     let onSecondary: Color
     let onSurface: Color
@@ -200,9 +203,12 @@ private let lightColorPalette = CareSphereColorPalette(
     primaryVariant: CareSphereColors.primaryBlueDark,
     secondary: CareSphereColors.secondaryGreen,
     secondaryVariant: CareSphereColors.secondaryOrange,
+    tertiary: CareSphereColors.secondaryPurple,
     surface: CareSphereColors.backgroundCard,
     background: CareSphereColors.backgroundPrimary,
     error: CareSphereColors.error,
+    warning: CareSphereColors.warning,
+    success: CareSphereColors.success,
     onPrimary: CareSphereColors.textOnPrimary,
     onSecondary: CareSphereColors.textOnPrimary,
     onSurface: CareSphereColors.textPrimary,
@@ -217,9 +223,12 @@ private let darkColorPalette = CareSphereColorPalette(
     primaryVariant: CareSphereColors.primaryBlue,
     secondary: CareSphereColors.secondaryGreen,
     secondaryVariant: CareSphereColors.secondaryOrange,
+    tertiary: CareSphereColors.secondaryPurple,
     surface: Color(red: 0.12, green: 0.12, blue: 0.12),
     background: Color(red: 0.08, green: 0.08, blue: 0.08),
     error: CareSphereColors.error,
+    warning: CareSphereColors.warning,
+    success: CareSphereColors.success,
     onPrimary: Color.white,
     onSecondary: Color.white,
     onSurface: Color.white,

@@ -412,3 +412,42 @@ enum SortOrder: String, Codable, CaseIterable {
         }
     }
 }
+
+// MARK: - Preview Extensions
+
+extension Member {
+    static let preview = Member(
+        id: "preview-member-id",
+        organizationId: "preview-org-id",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        phoneNumber: "+1-555-0123",
+        whatsAppNumber: nil,
+        weChatID: nil,
+        dateOfBirth: Calendar.current.date(byAdding: .year, value: -30, to: Date()),
+        address: Address(
+            street: "123 Main St",
+            city: "Anytown",
+            state: "CA",
+            postalCode: "12345",
+            country: "USA"
+        ),
+        status: .active,
+        tags: ["vip", "regular"],
+        customFields: [:],
+        profileImageURL: nil,
+        emergencyContact: EmergencyContact(
+            name: "Jane Doe",
+            relationship: "Spouse",
+            phoneNumber: "+1-555-0456",
+            email: "jane.doe@example.com"
+        ),
+        householdId: nil,
+        joinDate: Date(),
+        lastContactDate: Date(),
+        createdAt: Date(),
+        updatedAt: Date(),
+        createdBy: "preview-user-id"
+    )
+}

@@ -295,5 +295,5 @@ struct SignUpForm: View {
 #Preview {
     SignUpView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(AuthenticationService())
+        .environmentObject(AuthenticationService.shared)
 }

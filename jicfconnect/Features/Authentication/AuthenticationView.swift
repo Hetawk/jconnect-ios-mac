@@ -86,12 +86,13 @@ struct AuthenticationView: View {
 
         Task {
             isLoading = true
-            do {
-                try await authService.login(email: email, password: password)
-            } catch {
+            let success = await authService.login(email: email, password: password)
+            
+            if !success, let error = authService.error {
                 errorMessage = error.localizedDescription
                 showingError = true
             }
+            
             isLoading = false
         }
     }
@@ -241,5 +242,5 @@ struct SignInForm: View {
 #Preview {
     AuthenticationView()
         .environmentObject(CareSphereTheme.shared)
-        .environmentObject(AuthenticationService())
+        .environmentObject(AuthenticationService.shared)
 }
