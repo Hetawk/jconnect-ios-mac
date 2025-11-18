@@ -123,7 +123,7 @@ struct OrganizationBranding: Codable {
     
     // Convert hex to Color
     var primarySwiftUIColor: Color {
-        return Color(hex: primaryColor) ?? CareSphereColors.primaryBlue
+        return Color(hex: primaryColor) ?? CareSphereColors.brandPrimary
     }
     
     var secondarySwiftUIColor: Color? {
@@ -199,11 +199,11 @@ struct CareSphereSpacingTheme {
 // MARK: - Light and Dark Color Palettes
 
 private let lightColorPalette = CareSphereColorPalette(
-    primary: CareSphereColors.primaryBlue,
-    primaryVariant: CareSphereColors.primaryBlueDark,
-    secondary: CareSphereColors.secondaryGreen,
-    secondaryVariant: CareSphereColors.secondaryOrange,
-    tertiary: CareSphereColors.secondaryPurple,
+    primary: CareSphereColors.brandPrimary,
+    primaryVariant: CareSphereColors.brandPrimaryMuted,
+    secondary: CareSphereColors.accentGold,
+    secondaryVariant: CareSphereColors.accentMaroon,
+    tertiary: CareSphereColors.accentNavy,
     surface: CareSphereColors.backgroundCard,
     background: CareSphereColors.backgroundPrimary,
     error: CareSphereColors.error,
@@ -217,23 +217,21 @@ private let lightColorPalette = CareSphereColorPalette(
 )
 
 private let darkColorPalette = CareSphereColorPalette(
-    // TODO: Define dark mode colors
-    // For now, using light colors - implement proper dark theme
-    primary: CareSphereColors.primaryBlueLight,
-    primaryVariant: CareSphereColors.primaryBlue,
-    secondary: CareSphereColors.secondaryGreen,
-    secondaryVariant: CareSphereColors.secondaryOrange,
-    tertiary: CareSphereColors.secondaryPurple,
-    surface: Color(red: 0.12, green: 0.12, blue: 0.12),
-    background: Color(red: 0.08, green: 0.08, blue: 0.08),
+    primary: CareSphereColors.brandPrimaryMuted,
+    primaryVariant: CareSphereColors.brandPrimary,
+    secondary: CareSphereColors.accentGold,
+    secondaryVariant: CareSphereColors.accentMaroon,
+    tertiary: CareSphereColors.accentNavy,
+    surface: Color(red: 0.14, green: 0.12, blue: 0.10),
+    background: Color(red: 0.08, green: 0.07, blue: 0.06),
     error: CareSphereColors.error,
     warning: CareSphereColors.warning,
     success: CareSphereColors.success,
-    onPrimary: Color.white,
-    onSecondary: Color.white,
-    onSurface: Color.white,
-    onBackground: Color.white,
-    onError: Color.white
+    onPrimary: CareSphereColors.foregroundLight,
+    onSecondary: CareSphereColors.foregroundLight,
+    onSurface: CareSphereColors.foregroundLight,
+    onBackground: CareSphereColors.foregroundLight,
+    onError: CareSphereColors.foregroundLight
 )
 
 // MARK: - Helper Extensions

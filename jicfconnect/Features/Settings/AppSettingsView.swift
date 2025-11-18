@@ -21,6 +21,31 @@ struct AppSettingsView: View {
                     }
                 }
                 
+                // Appearance Section
+                Section("Appearance") {
+                    Toggle(isOn: Binding(
+                        get: { theme.currentColorScheme == .dark },
+                        set: { theme.setColorScheme($0 ? .dark : .light) }
+                    )) {
+                        HStack(spacing: CareSphereSpacing.md) {
+                            Image(systemName: "moon.fill")
+                                .foregroundColor(theme.colors.secondary)
+                                .frame(width: 24, height: 24)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Dark Mode")
+                                    .font(CareSphereTypography.bodyMedium)
+                                    .foregroundColor(theme.colors.onSurface)
+                                
+                                Text("Use dark appearance")
+                                    .font(CareSphereTypography.labelSmall)
+                                    .foregroundColor(theme.colors.onSurface.opacity(0.6))
+                            }
+                        }
+                    }
+                    .tint(theme.colors.secondary)
+                }
+                
                 // Settings Sections
                 Section("Message Settings") {
                     SettingsRow(

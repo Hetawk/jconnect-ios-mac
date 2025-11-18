@@ -4,47 +4,46 @@ import SwiftUI
 /// Single source of truth for all colors used across the application
 struct CareSphereColors {
     
-    // MARK: - Primary Brand Colors
-    static let primaryBlue = Color(red: 0.20, green: 0.48, blue: 0.84)      // #3478D5
-    static let primaryBlueLight = Color(red: 0.40, green: 0.63, blue: 0.91) // #669EE8
-    static let primaryBlueDark = Color(red: 0.12, green: 0.35, blue: 0.68)  // #1F59AE
-    
-    // MARK: - Secondary Colors
-    static let secondaryGreen = Color(red: 0.22, green: 0.73, blue: 0.41)   // #38BB68
-    static let secondaryOrange = Color(red: 0.98, green: 0.55, blue: 0.18)  // #FA8C2E
-    static let secondaryPurple = Color(red: 0.61, green: 0.35, blue: 0.85)  // #9B59D9
+    // MARK: - Brand Palette (EKD Digital)
+    static let brandPrimary = Color(red: 31/255, green: 28/255, blue: 24/255)              // #1F1C18
+    static let brandPrimaryMuted = Color(red: 26/255, green: 26/255, blue: 26/255)         // #1A1A1A
+    static let brandPrimaryLight = Color(red: 212/255, green: 175/255, blue: 106/255)      // #D4AF6A
+    static let accentGold = Color(red: 200/255, green: 160/255, blue: 97/255)              // #C8A061
+    static let accentMaroon = Color(red: 142/255, green: 14/255, blue: 0/255)              // #8E0E00
+    static let accentNavy = Color(red: 24/255, green: 46/255, blue: 95/255)                // #182E5F
+    static let foregroundLight = Color(red: 230/255, green: 230/255, blue: 230/255)        // #E6E6E6
     
     // MARK: - Semantic Colors
-    static let success = Color(red: 0.22, green: 0.73, blue: 0.41)          // #38BB68
-    static let warning = Color(red: 0.98, green: 0.55, blue: 0.18)          // #FA8C2E
-    static let error = Color(red: 0.91, green: 0.26, blue: 0.27)            // #E84344
-    static let info = primaryBlue
+    static let success = brandPrimaryLight
+    static let warning = accentGold
+    static let error = accentMaroon
+    static let info = accentNavy
     
     // MARK: - Text Colors
-    static let textPrimary = Color(red: 0.13, green: 0.13, blue: 0.13)      // #212121
-    static let textSecondary = Color(red: 0.46, green: 0.46, blue: 0.46)    // #757575
-    static let textTertiary = Color(red: 0.62, green: 0.62, blue: 0.62)     // #9E9E9E
-    static let textOnPrimary = Color.white
+    static let textPrimary = brandPrimaryMuted
+    static let textSecondary = Color(red: 26/255, green: 26/255, blue: 26/255, opacity: 0.6)
+    static let textTertiary = Color(red: 26/255, green: 26/255, blue: 26/255, opacity: 0.35)
+    static let textOnPrimary = foregroundLight
     
     // MARK: - Background Colors
-    static let backgroundPrimary = Color(red: 0.99, green: 0.99, blue: 0.99) // #FAFAFA
-    static let backgroundSecondary = Color(red: 0.96, green: 0.96, blue: 0.96) // #F5F5F5
-    static let backgroundTertiary = Color.white
-    static let backgroundCard = Color.white
+    static let backgroundPrimary = Color(red: 0.97, green: 0.95, blue: 0.93)       // soft parchment
+    static let backgroundSecondary = Color(red: 0.94, green: 0.90, blue: 0.86)     // warm neutral
+    static let backgroundTertiary = Color(red: 0.99, green: 0.98, blue: 0.96)
+    static let backgroundCard = Color(red: 1.0, green: 0.99, blue: 0.97)
     
     // MARK: - Border Colors
-    static let borderLight = Color(red: 0.91, green: 0.91, blue: 0.91)      // #E8E8E8
-    static let borderMedium = Color(red: 0.84, green: 0.84, blue: 0.84)     // #D6D6D6
-    static let borderDark = Color(red: 0.62, green: 0.62, blue: 0.62)       // #9E9E9E
+    static let borderLight = Color(red: 0.89, green: 0.83, blue: 0.76)
+    static let borderMedium = Color(red: 0.74, green: 0.66, blue: 0.57)
+    static let borderDark = Color(red: 0.54, green: 0.47, blue: 0.38)
     
     // MARK: - Surface Colors
-    static let surfaceElevated = Color.white
-    static let surfacePressed = Color(red: 0.93, green: 0.93, blue: 0.93)   // #EEEEEE
-    static let surfaceHover = Color(red: 0.96, green: 0.96, blue: 0.96)     // #F5F5F5
+    static let surfaceElevated = Color(red: 1.0, green: 0.99, blue: 0.98)
+    static let surfacePressed = Color(red: 0.91, green: 0.86, blue: 0.79)
+    static let surfaceHover = Color(red: 0.95, green: 0.90, blue: 0.83)
     
     // MARK: - Shadow Colors
-    static let shadowPrimary = Color.black.opacity(0.08)
-    static let shadowSecondary = Color.black.opacity(0.04)
+    static let shadowPrimary = Color.black.opacity(0.12)
+    static let shadowSecondary = Color.black.opacity(0.06)
     
     // MARK: - Dark Mode Support (Future)
     // TODO: Implement dark mode color variants
@@ -55,10 +54,10 @@ struct CareSphereColors {
 extension CareSphereColors {
     /// Colors for different user roles
     struct UserRoles {
-        static let superAdmin = CareSphereColors.primaryBlueDark
-        static let admin = CareSphereColors.primaryBlue
-        static let ministryLeader = CareSphereColors.secondaryPurple
-        static let volunteer = CareSphereColors.secondaryGreen
+        static let superAdmin = CareSphereColors.brandPrimary
+        static let admin = CareSphereColors.accentNavy
+        static let ministryLeader = CareSphereColors.accentMaroon
+        static let volunteer = CareSphereColors.brandPrimaryLight
         static let member = CareSphereColors.textSecondary
     }
     
@@ -66,7 +65,7 @@ extension CareSphereColors {
     struct MessagePriority {
         static let urgent = CareSphereColors.error
         static let high = CareSphereColors.warning
-        static let normal = CareSphereColors.primaryBlue
+        static let normal = CareSphereColors.brandPrimary
         static let low = CareSphereColors.textSecondary
     }
     

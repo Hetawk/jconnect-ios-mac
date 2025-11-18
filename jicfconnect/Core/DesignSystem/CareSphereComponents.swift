@@ -112,7 +112,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .padding(.vertical, CareSphereSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: CareSphereRadius.Component.button)
-                    .fill(theme.colors.primary)
+                    .fill(theme.colors.secondary) // Use gold accent
                     .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
                     .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
             )
@@ -127,17 +127,17 @@ struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.secondary)
-            .foregroundColor(theme.colors.primary)
+            .foregroundColor(theme.colors.secondary) // Gold text
             .padding(.horizontal, CareSphereSpacing.lg)
             .padding(.vertical, CareSphereSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: CareSphereRadius.Component.button)
-                    .strokeBorder(theme.colors.primary, lineWidth: 1.5)
+                    .strokeBorder(theme.colors.secondary, lineWidth: 1.5) // Gold border
                     .background(
                         RoundedRectangle(cornerRadius: CareSphereRadius.Component.button)
                             .fill(
                                 configuration.isPressed
-                                    ? theme.colors.primary.opacity(0.1) : Color.clear)
+                                    ? theme.colors.secondary.opacity(0.1) : Color.clear)
                     )
             )
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -151,12 +151,12 @@ struct TertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(CareSphereTypography.Buttons.tertiary)
-            .foregroundColor(theme.colors.primary)
+            .foregroundColor(theme.colors.secondary) // Gold text for tertiary actions
             .padding(.horizontal, CareSphereSpacing.sm)
             .padding(.vertical, CareSphereSpacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: CareSphereRadius.sm)
-                    .fill(configuration.isPressed ? theme.colors.primary.opacity(0.1) : Color.clear)
+                    .fill(configuration.isPressed ? theme.colors.secondary.opacity(0.1) : Color.clear)
             )
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
