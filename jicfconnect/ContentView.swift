@@ -12,6 +12,8 @@ struct ContentView: View {
     @StateObject private var theme = CareSphereTheme.shared
     @StateObject private var authService = AuthenticationService.shared
     @StateObject private var settingsService = SenderSettingsService.shared
+    @StateObject private var memberService = MemberService.shared
+    @StateObject private var messageService = MessageService.shared
     
     var body: some View {
         Group {
@@ -24,6 +26,8 @@ struct ContentView: View {
         .environmentObject(theme)
         .environmentObject(authService)
         .environmentObject(settingsService)
+        .environmentObject(memberService)
+        .environmentObject(messageService)
         .task {
             // Load current user if already authenticated
             if authService.isAuthenticated {

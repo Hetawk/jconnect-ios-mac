@@ -42,9 +42,12 @@ struct MembersView: View {
                                 .onTapGesture {
                                     selectedMember = member
                                 }
+                                .listRowBackground(theme.colors.surface)
                         }
                     }
                     .listStyle(PlainListStyle())
+                    .scrollContentBackground(.hidden)
+                    .background(theme.colors.background)
                 }
             }
             .background(theme.colors.background)
@@ -176,9 +179,12 @@ struct MessagesView: View {
                     List {
                         ForEach(messageService.messages) { message in
                             MessageRow(message: message)
+                                .listRowBackground(theme.colors.surface)
                         }
                     }
                     .listStyle(PlainListStyle())
+                    .scrollContentBackground(.hidden)
+                    .background(theme.colors.background)
                 }
             }
             .background(theme.colors.background)
@@ -511,6 +517,7 @@ struct SettingsView: View {
                 }
             }
             .background(theme.colors.background)
+            .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
         }
     }

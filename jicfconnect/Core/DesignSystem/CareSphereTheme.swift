@@ -57,8 +57,15 @@ class CareSphereTheme: ObservableObject {
     
     // MARK: - Theme Management Methods
     func setColorScheme(_ scheme: ColorScheme) {
+        // Only update if different to avoid unnecessary view updates
+        guard currentColorScheme != scheme else { return }
         currentColorScheme = scheme
-        saveThemePreferences()
+        // Save asynchronously to avoid triggering logout
+        Task {
+            await MainActor.run {
+                saveThemePreferences()
+            }
+        }
     }
     
     func setOrganizationBranding(_ branding: OrganizationBranding?) {
@@ -210,27 +217,27 @@ private let lightColorPalette = CareSphereColorPalette(
     warning: CareSphereColors.warning,
     success: CareSphereColors.success,
     onPrimary: CareSphereColors.textOnPrimary,
-    onSecondary: CareSphereColors.textOnPrimary,
+    onSecondary: Color(red: 0.08, green: 0.07, blue: 0.06),  // Dark text on gold
     onSurface: CareSphereColors.textPrimary,
     onBackground: CareSphereColors.textPrimary,
     onError: CareSphereColors.textOnPrimary
 )
 
 private let darkColorPalette = CareSphereColorPalette(
-    primary: CareSphereColors.brandPrimaryMuted,
-    primaryVariant: CareSphereColors.brandPrimary,
+    primary: CareSphereColors.accentGold,  // Gold stands out better in dark mode
+    primaryVariant: CareSphereColors.brandPrimaryMuted,
     secondary: CareSphereColors.accentGold,
     secondaryVariant: CareSphereColors.accentMaroon,
     tertiary: CareSphereColors.accentNavy,
-    surface: Color(red: 0.14, green: 0.12, blue: 0.10),
-    background: Color(red: 0.08, green: 0.07, blue: 0.06),
+    surface: Color(red: 0.14, green: 0.12, blue: 0.10),  // Dark brown surface
+    background: Color(red: 0.08, green: 0.07, blue: 0.06),  // Darker background
     error: CareSphereColors.error,
     warning: CareSphereColors.warning,
     success: CareSphereColors.success,
-    onPrimary: CareSphereColors.foregroundLight,
-    onSecondary: CareSphereColors.foregroundLight,
-    onSurface: CareSphereColors.foregroundLight,
-    onBackground: CareSphereColors.foregroundLight,
+    onPrimary: Color(red: 0.08, green: 0.07, blue: 0.06),  // Dark text on gold
+    onSecondary: Color(red: 0.08, green: 0.07, blue: 0.06),  // Dark text on gold
+    onSurface: Color(red: 0.95, green: 0.95, blue: 0.95),  // Light gray text on dark surface
+    onBackground: Color(red: 0.98, green: 0.98, blue: 0.98),  // Almost white text on dark background
     onError: CareSphereColors.foregroundLight
 )
 

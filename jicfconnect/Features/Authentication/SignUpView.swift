@@ -134,11 +134,11 @@ struct SignUpForm: View {
                     Image(systemName: "person")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    TextField("Enter your full name", text: $fullName)
+                    ThemedTextField(placeholder: "Enter your full name", text: $fullName)
                         .textContentType(.name)
                 }
                 .padding()
-                .background(theme.colors.background)
+                .background(theme.colors.surface)
                 .cornerRadius(CareSphereRadius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)
@@ -157,7 +157,7 @@ struct SignUpForm: View {
                     Image(systemName: "envelope")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    TextField("Enter your email", text: $email)
+                    ThemedTextField(placeholder: "Enter your email", text: $email)
                         .textContentType(.emailAddress)
                         #if os(iOS)
                             .keyboardType(.emailAddress)
@@ -165,7 +165,7 @@ struct SignUpForm: View {
                         #endif
                 }
                 .padding()
-                .background(theme.colors.background)
+                .background(theme.colors.surface)
                 .cornerRadius(CareSphereRadius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)
@@ -184,13 +184,8 @@ struct SignUpForm: View {
                     Image(systemName: "lock")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    if showPassword {
-                        TextField("Enter your password", text: $password)
-                            .textContentType(.newPassword)
-                    } else {
-                        SecureField("Enter your password", text: $password)
-                            .textContentType(.newPassword)
-                    }
+                    ThemedTextField(placeholder: "Enter your password", text: $password, isSecure: !showPassword)
+                        .textContentType(.newPassword)
 
                     Button(action: { showPassword.toggle() }) {
                         Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
@@ -198,7 +193,7 @@ struct SignUpForm: View {
                     }
                 }
                 .padding()
-                .background(theme.colors.background)
+                .background(theme.colors.surface)
                 .cornerRadius(CareSphereRadius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)
@@ -217,13 +212,8 @@ struct SignUpForm: View {
                     Image(systemName: "lock")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    if showConfirmPassword {
-                        TextField("Confirm your password", text: $confirmPassword)
-                            .textContentType(.newPassword)
-                    } else {
-                        SecureField("Confirm your password", text: $confirmPassword)
-                            .textContentType(.newPassword)
-                    }
+                    ThemedTextField(placeholder: "Confirm your password", text: $confirmPassword, isSecure: !showConfirmPassword)
+                        .textContentType(.newPassword)
 
                     Button(action: { showConfirmPassword.toggle() }) {
                         Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")
@@ -231,7 +221,7 @@ struct SignUpForm: View {
                     }
                 }
                 .padding()
-                .background(theme.colors.background)
+                .background(theme.colors.surface)
                 .cornerRadius(CareSphereRadius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: CareSphereRadius.md)

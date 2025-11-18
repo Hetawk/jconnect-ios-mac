@@ -11,7 +11,7 @@ struct DashboardView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: CareSphereSpacing.lg) {
+                LazyVStack(spacing: CareSphereSpacing.md) {
                     // Welcome section
                     welcomeSection
 
@@ -24,12 +24,16 @@ struct DashboardView: View {
                     // Quick actions
                     quickActionsSection
                 }
-                .padding(CareSphereSpacing.lg)
+                .padding(.horizontal, CareSphereSpacing.md)
+                .padding(.top, CareSphereSpacing.sm)
+                .padding(.bottom, CareSphereSpacing.lg)
             }
-            .background(theme.colors.background)
+            .background(theme.colors.background.ignoresSafeArea())
             .navigationTitle("Dashboard")
             #if os(iOS)
-                .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(theme.colors.surface, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
             #endif
             .refreshable {
                 await loadDashboardData()
@@ -38,6 +42,7 @@ struct DashboardView: View {
                 await loadDashboardData()
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     // MARK: - Dashboard Sections

@@ -168,7 +168,7 @@ struct SignInForm: View {
                         Image(systemName: "envelope")
                             .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                        TextField("Enter your email", text: $email)
+                        ThemedTextField(placeholder: "Enter your email", text: $email)
                             .textContentType(.emailAddress)
                             #if os(iOS)
                                 .keyboardType(.emailAddress)
@@ -176,7 +176,7 @@ struct SignInForm: View {
                             #endif
                     }
                     .padding()
-                    .background(theme.colors.background)
+                    .background(theme.colors.surface)
                     .cornerRadius(CareSphereRadius.md)
                     .overlay(
                         RoundedRectangle(cornerRadius: CareSphereRadius.md)
@@ -195,13 +195,8 @@ struct SignInForm: View {
                         Image(systemName: "lock")
                             .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                        if showPassword {
-                            TextField("Enter your password", text: $password)
-                                .textContentType(.password)
-                        } else {
-                            SecureField("Enter your password", text: $password)
-                                .textContentType(.password)
-                        }
+                        ThemedTextField(placeholder: "Enter your password", text: $password, isSecure: !showPassword)
+                            .textContentType(.password)
 
                         Button(action: { showPassword.toggle() }) {
                             Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
@@ -209,7 +204,7 @@ struct SignInForm: View {
                         }
                     }
                     .padding()
-                    .background(theme.colors.background)
+                    .background(theme.colors.surface)
                     .cornerRadius(CareSphereRadius.md)
                     .overlay(
                         RoundedRectangle(cornerRadius: CareSphereRadius.md)

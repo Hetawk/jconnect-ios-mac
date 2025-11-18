@@ -33,7 +33,14 @@ struct MainAppView: View {
                     TabItemView(icon: "gear", text: "Settings")
                 }
         }
-        .accentColor(theme.colors.primary)
+        .accentColor(theme.colors.secondary)
+        .onAppear {
+            let appearance = UITabBarAppearance()
+            appearance.configureWithDefaultBackground()
+            appearance.backgroundColor = UIColor(theme.colors.surface)
+            UITabBar.appearance().standardAppearance = appearance
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
     }
 }
 
