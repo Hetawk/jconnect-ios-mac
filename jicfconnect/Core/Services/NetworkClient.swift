@@ -118,9 +118,9 @@ struct APIErrorResponse: Codable {
 }
 
 struct ResponseMetadata: Codable {
-    let timestamp: Date
-    let requestId: String
-    let version: String
+    let timestamp: Date?
+    let requestId: String?
+    let version: String?
     let pagination: PaginationInfo?
 }
 
