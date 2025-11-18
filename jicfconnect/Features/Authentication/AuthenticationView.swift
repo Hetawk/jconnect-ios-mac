@@ -105,25 +105,12 @@ struct LogoHeader: View {
     var body: some View {
         VStack(spacing: CareSphereSpacing.lg) {
             // App icon/logo
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                theme.colors.primary,
-                                theme.colors.primary.opacity(0.7),
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 100, height: 100)
-                    .shadow(color: theme.colors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
-
-                Image(systemName: "heart.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.white)
-            }
+            Image("BrandLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 160, height: 160)
+                .shadow(color: theme.colors.primary.opacity(0.25), radius: 12, x: 0, y: 6)
+                .accessibilityHidden(true)
 
             Text("CareSphere")
                 .font(CareSphereTypography.displayMedium)
