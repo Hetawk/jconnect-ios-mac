@@ -153,11 +153,17 @@ class AuthenticationService: ObservableObject {
         do {
             let user: User = try await networkClient.request<User>(endpoint: Endpoints.Auth.profile)
             currentUser = user
+        } catch let apiError as APIError {
+            // Only clear auth when tokens are invalid
+            switch apiError {
+            case .unauthorized, .forbidden:
+                networkClient.clearAuthTokens()
+                currentUser = nil
+            default:
+                self.error = apiError
+            }
         } catch {
-            // If profile load fails, user is not authenticated
-            networkClient.clearAuthTokens()
-            currentUser = nil
-            self.error = error as? APIError
+            self.error = .unknown(error)
         }
     }
 

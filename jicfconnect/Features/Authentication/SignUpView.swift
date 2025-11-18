@@ -134,8 +134,16 @@ struct SignUpForm: View {
                     Image(systemName: "person")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    ThemedTextField(placeholder: "Enter your full name", text: $fullName)
-                        .textContentType(.name)
+                    TextField(
+                        "",
+                        text: $fullName,
+                        prompt: Text("Enter your full name")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                            .font(CareSphereTypography.bodyMedium)
+                    )
+                    .textContentType(.name)
+                    .foregroundColor(theme.colors.onSurface)
+                    .tint(theme.colors.secondary)
                 }
                 .padding()
                 .background(theme.colors.surface)
@@ -157,12 +165,20 @@ struct SignUpForm: View {
                     Image(systemName: "envelope")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    ThemedTextField(placeholder: "Enter your email", text: $email)
-                        .textContentType(.emailAddress)
-                        #if os(iOS)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                        #endif
+                    TextField(
+                        "",
+                        text: $email,
+                        prompt: Text("Enter your email")
+                            .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                            .font(CareSphereTypography.bodyMedium)
+                    )
+                    .textContentType(.emailAddress)
+                    .foregroundColor(theme.colors.onSurface)
+                    .tint(theme.colors.secondary)
+                    #if os(iOS)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                    #endif
                 }
                 .padding()
                 .background(theme.colors.surface)
@@ -184,8 +200,29 @@ struct SignUpForm: View {
                     Image(systemName: "lock")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    ThemedTextField(placeholder: "Enter your password", text: $password, isSecure: !showPassword)
+                    if showPassword {
+                        TextField(
+                            "",
+                            text: $password,
+                            prompt: Text("Enter your password")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                .font(CareSphereTypography.bodyMedium)
+                        )
                         .textContentType(.newPassword)
+                        .foregroundColor(theme.colors.onSurface)
+                        .tint(theme.colors.secondary)
+                    } else {
+                        SecureField(
+                            "",
+                            text: $password,
+                            prompt: Text("Enter your password")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                .font(CareSphereTypography.bodyMedium)
+                        )
+                        .textContentType(.newPassword)
+                        .foregroundColor(theme.colors.onSurface)
+                        .tint(theme.colors.secondary)
+                    }
 
                     Button(action: { showPassword.toggle() }) {
                         Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
@@ -212,8 +249,29 @@ struct SignUpForm: View {
                     Image(systemName: "lock")
                         .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                    ThemedTextField(placeholder: "Confirm your password", text: $confirmPassword, isSecure: !showConfirmPassword)
+                    if showConfirmPassword {
+                        TextField(
+                            "",
+                            text: $confirmPassword,
+                            prompt: Text("Confirm your password")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                .font(CareSphereTypography.bodyMedium)
+                        )
                         .textContentType(.newPassword)
+                        .foregroundColor(theme.colors.onSurface)
+                        .tint(theme.colors.secondary)
+                    } else {
+                        SecureField(
+                            "",
+                            text: $confirmPassword,
+                            prompt: Text("Confirm your password")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                .font(CareSphereTypography.bodyMedium)
+                        )
+                        .textContentType(.newPassword)
+                        .foregroundColor(theme.colors.onSurface)
+                        .tint(theme.colors.secondary)
+                    }
 
                     Button(action: { showConfirmPassword.toggle() }) {
                         Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")

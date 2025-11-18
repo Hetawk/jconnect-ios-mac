@@ -492,35 +492,6 @@ struct CareSphereEmptyState: View {
     }
 }
 
-// MARK: - Custom TextField with Placeholder Color
-
-/// Custom TextField that supports placeholder text color in dark mode
-struct ThemedTextField: View {
-    @EnvironmentObject private var theme: CareSphereTheme
-    let placeholder: String
-    @Binding var text: String
-    var isSecure: Bool = false
-    
-    var body: some View {
-        ZStack(alignment: .leading) {
-            if text.isEmpty {
-                Text(placeholder)
-                    .foregroundColor(theme.colors.onSurface.opacity(0.4))
-                    .font(CareSphereTypography.bodyMedium)
-            }
-            if isSecure {
-                SecureField("", text: $text)
-                    .foregroundColor(theme.colors.onSurface)
-                    .tint(theme.colors.secondary)
-            } else {
-                TextField("", text: $text)
-                    .foregroundColor(theme.colors.onSurface)
-                    .tint(theme.colors.secondary)
-            }
-        }
-    }
-}
-
 // MARK: - Search Bar Component
 
 /// Search bar with CareSphere styling
@@ -545,11 +516,18 @@ struct CareSphereSearchBar: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(theme.colors.onSurface.opacity(0.6))
 
-            ThemedTextField(placeholder: placeholder, text: $text)
-                .font(CareSphereTypography.bodyMedium)
-                .onSubmit {
-                    onSearchButtonClicked?()
-                }
+            TextField(
+                "",
+                text: $text,
+                prompt: Text(placeholder)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                    .font(CareSphereTypography.bodyMedium)
+            )
+            .foregroundColor(theme.colors.onSurface)
+            .tint(theme.colors.secondary)
+            .onSubmit {
+                onSearchButtonClicked?()
+            }
 
             if !text.isEmpty {
                 Button(action: {

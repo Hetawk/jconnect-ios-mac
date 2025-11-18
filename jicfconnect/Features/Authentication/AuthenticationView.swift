@@ -168,12 +168,20 @@ struct SignInForm: View {
                         Image(systemName: "envelope")
                             .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                        ThemedTextField(placeholder: "Enter your email", text: $email)
-                            .textContentType(.emailAddress)
-                            #if os(iOS)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                            #endif
+                        TextField(
+                            "",
+                            text: $email,
+                            prompt: Text("Enter your email")
+                                .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                .font(CareSphereTypography.bodyMedium)
+                        )
+                        .textContentType(.emailAddress)
+                        .foregroundColor(theme.colors.onSurface)
+                        .tint(theme.colors.secondary)
+                        #if os(iOS)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                        #endif
                     }
                     .padding()
                     .background(theme.colors.surface)
@@ -195,8 +203,29 @@ struct SignInForm: View {
                         Image(systemName: "lock")
                             .foregroundColor(theme.colors.onSurface.opacity(0.5))
 
-                        ThemedTextField(placeholder: "Enter your password", text: $password, isSecure: !showPassword)
+                        if showPassword {
+                            TextField(
+                                "",
+                                text: $password,
+                                prompt: Text("Enter your password")
+                                    .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                    .font(CareSphereTypography.bodyMedium)
+                            )
                             .textContentType(.password)
+                            .foregroundColor(theme.colors.onSurface)
+                            .tint(theme.colors.secondary)
+                        } else {
+                            SecureField(
+                                "",
+                                text: $password,
+                                prompt: Text("Enter your password")
+                                    .foregroundColor(theme.colors.onSurface.opacity(0.4))
+                                    .font(CareSphereTypography.bodyMedium)
+                            )
+                            .textContentType(.password)
+                            .foregroundColor(theme.colors.onSurface)
+                            .tint(theme.colors.secondary)
+                        }
 
                         Button(action: { showPassword.toggle() }) {
                             Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")

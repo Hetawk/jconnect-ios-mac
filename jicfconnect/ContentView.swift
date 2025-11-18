@@ -14,6 +14,7 @@ struct ContentView: View {
     @StateObject private var settingsService = SenderSettingsService.shared
     @StateObject private var memberService = MemberService.shared
     @StateObject private var messageService = MessageService.shared
+    @State private var hasLoadedInitialUser = false
     
     var body: some View {
         Group {
@@ -29,6 +30,8 @@ struct ContentView: View {
         .environmentObject(memberService)
         .environmentObject(messageService)
         .task {
+            guard !hasLoadedInitialUser else { return }
+            hasLoadedInitialUser = true
             // Load current user if already authenticated
             if authService.isAuthenticated {
                 await authService.loadCurrentUser()

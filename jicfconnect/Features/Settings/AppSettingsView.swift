@@ -9,6 +9,20 @@ struct AppSettingsView: View {
     @State private var showingProfile = false
     @State private var showingLogoutConfirmation = false
     
+    private var rowBackgroundColor: Color {
+        theme.currentColorScheme == .dark
+            ? theme.colors.surface.opacity(0.98)
+            : theme.colors.surface
+    }
+    
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(CareSphereTypography.labelSmall)
+            .fontWeight(.semibold)
+            .foregroundColor(theme.colors.onSurface.opacity(0.7))
+            .padding(.top, CareSphereSpacing.sm)
+    }
+    
     var body: some View {
         NavigationView {
             List {
@@ -19,10 +33,11 @@ struct AppSettingsView: View {
                             showingProfile = true
                         }
                     }
+                    .listRowBackground(rowBackgroundColor)
                 }
                 
                 // Appearance Section
-                Section("Appearance") {
+                Section(header: sectionHeader("Appearance")) {
                     Toggle(isOn: Binding(
                         get: { theme.currentColorScheme == .dark },
                         set: { theme.setColorScheme($0 ? .dark : .light) }
@@ -45,9 +60,10 @@ struct AppSettingsView: View {
                     }
                     .tint(theme.colors.secondary)
                 }
+                .listRowBackground(rowBackgroundColor)
                 
                 // Settings Sections
-                Section("Message Settings") {
+                Section(header: sectionHeader("Message Settings")) {
                     SettingsRow(
                         icon: "person.crop.circle.badge.checkmark",
                         title: "Sender Settings",
@@ -62,8 +78,9 @@ struct AppSettingsView: View {
                         action: { /* TODO: Navigate to templates */ }
                     )
                 }
+                .listRowBackground(rowBackgroundColor)
                 
-                Section("Notifications") {
+                Section(header: sectionHeader("Notifications")) {
                     SettingsRow(
                         icon: "bell",
                         title: "Push Notifications",
@@ -78,8 +95,9 @@ struct AppSettingsView: View {
                         action: { /* TODO: Navigate to email settings */ }
                     )
                 }
+                .listRowBackground(rowBackgroundColor)
                 
-                Section("Account") {
+                Section(header: sectionHeader("Account")) {
                     SettingsRow(
                         icon: "key",
                         title: "Change Password",
@@ -94,8 +112,9 @@ struct AppSettingsView: View {
                         action: { /* TODO: Navigate to privacy */ }
                     )
                 }
+                .listRowBackground(rowBackgroundColor)
                 
-                Section("Support") {
+                Section(header: sectionHeader("Support")) {
                     SettingsRow(
                         icon: "questionmark.circle",
                         title: "Help & Support",
@@ -110,6 +129,7 @@ struct AppSettingsView: View {
                         action: { /* TODO: Navigate to about */ }
                     )
                 }
+                .listRowBackground(rowBackgroundColor)
                 
                 Section {
                     Button(action: { showingLogoutConfirmation = true }) {
@@ -126,7 +146,10 @@ struct AppSettingsView: View {
                         .padding(.vertical, 4)
                     }
                 }
+                .listRowBackground(rowBackgroundColor)
             }
+            .listStyle(.insetGrouped)
+            .listSectionSeparator(.hidden)
             .background(theme.colors.background)
             .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
