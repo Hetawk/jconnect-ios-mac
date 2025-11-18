@@ -9,9 +9,12 @@ class AuthenticationService: ObservableObject {
     @MainActor static let shared = AuthenticationService()
     
     @Published var currentUser: User?
-    @Published var isAuthenticated = false
     @Published var isLoading = false
     @Published var error: APIError?
+    
+    var isAuthenticated: Bool {
+        return currentUser != nil && networkClient.isAuthenticated
+    }
 
     private let networkClient: NetworkClient
     private var cancellables = Set<AnyCancellable>()
@@ -20,8 +23,7 @@ class AuthenticationService: ObservableObject {
         self.networkClient = NetworkClient.shared
         
         // Check if user is already authenticated
-        isAuthenticated = networkClient.isAuthenticated
-        if isAuthenticated {
+        if networkClient.isAuthenticated {
             Task {
                 await loadCurrentUser()
             }
@@ -130,7 +132,6 @@ class AuthenticationService: ObservableObject {
         // Clear local state
         networkClient.clearAuthTokens()
         currentUser = nil
-        isAuthenticated = false
     }
 
     func refreshToken() async throws {
@@ -145,19 +146,17 @@ class AuthenticationService: ObservableObject {
 
     func loadCurrentUser() async {
         guard networkClient.isAuthenticated else {
-            isAuthenticated = false
+            currentUser = nil
             return
         }
 
         do {
             let user: User = try await networkClient.request<User>(endpoint: Endpoints.Auth.profile)
             currentUser = user
-            isAuthenticated = true
         } catch {
             // If profile load fails, user is not authenticated
             networkClient.clearAuthTokens()
             currentUser = nil
-            isAuthenticated = false
             self.error = error as? APIError
         }
     }
@@ -188,7 +187,6 @@ class AuthenticationService: ObservableObject {
         let service = AuthenticationService.shared
         Task { @MainActor in
             service.currentUser = User.preview
-            service.isAuthenticated = true
         }
         return service
     }()
