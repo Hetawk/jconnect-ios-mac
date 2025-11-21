@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  jicfconnect
+//  CareSphere Apple (iOS & macOS)
 //
 //  Created by Enoch Kwateh Dongbo on 2025/11/11.
 //
@@ -15,7 +15,7 @@ struct ContentView: View {
     @StateObject private var memberService = MemberService.shared
     @StateObject private var messageService = MessageService.shared
     @State private var hasLoadedInitialUser = false
-    
+
     var body: some View {
         Group {
             if authService.isAuthenticated {

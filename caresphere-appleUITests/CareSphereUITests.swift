@@ -1,13 +1,13 @@
 //
-//  jicfconnectUITests.swift
-//  jicfconnectUITests
+//  CareSphereUITests.swift
+//  CareSphere Apple (iOS & macOS)
 //
 //  Created by Enoch Kwateh Dongbo on 2025/11/11.
 //
 
 import XCTest
 
-final class jicfconnectUITests: XCTestCase {
+final class CareSphereUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

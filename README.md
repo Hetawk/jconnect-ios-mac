@@ -1,4 +1,4 @@
-# CareSphere
+# CareSphere Apple
 
 > **Connect, Care, Community** - Modern member care and communication platform for iOS and macOS
 
@@ -25,10 +25,10 @@
 ### Setup
 
 ```bash
-git clone https://github.com/Hetawk/jconnect-ios-mac.git
-cd jconnect-ios-mac
-cp jicfconnect/.env.example jicfconnect/.env
-open jicfconnect.xcodeproj
+git clone https://github.com/Hetawk/caresphere-apple.git
+cd caresphere-apple
+cp .env.example .env
+open caresphere-apple.xcodeproj
 ```
 
 ### Environment Configuration
@@ -46,7 +46,7 @@ DEBUG_MODE=true
 ### Clean Modular Design
 
 ```
-jicfconnect/
+caresphere-apple/
 ├── Core/                   # 🔧 Shared architecture
 │   ├── DesignSystem/       # 🎨 Theme, colors, components
 │   ├── Models/             # 📋 Data structures
@@ -56,7 +56,7 @@ jicfconnect/
 │   ├── Dashboard/          # 📊 Main overview
 │   ├── Members/            # 👥 Member management
 │   └── Messages/           # 💬 Communication
-└── Platform/               # 📱 iOS/macOS specific
+└── Platform/               # 📱 iOS & macOS specific
 ```
 
 ### Design Principles
@@ -102,8 +102,8 @@ CareSphereCard { /* content */ }
 
 ## Support
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/Hetawk/jconnect-ios-mac/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/Hetawk/jconnect-ios-mac/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Hetawk/caresphere-apple/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Hetawk/caresphere-apple/discussions)
 - 📚 **Docs**: [docs.caresphere.app](https://docs.caresphere.app)
 
 ---

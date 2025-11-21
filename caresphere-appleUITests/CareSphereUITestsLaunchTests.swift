@@ -1,13 +1,13 @@
 //
-//  jicfconnectUITestsLaunchTests.swift
-//  jicfconnectUITests
+//  CareSphereUITestsLaunchTests.swift
+//  CareSphere Apple (iOS & macOS)
 //
 //  Created by Enoch Kwateh Dongbo on 2025/11/11.
 //
 
 import XCTest
 
-final class jicfconnectUITestsLaunchTests: XCTestCase {
+final class CareSphereUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
