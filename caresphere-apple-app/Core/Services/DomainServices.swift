@@ -166,6 +166,129 @@ class AuthenticationService: ObservableObject {
             self.error = .unknown(error)
         }
     }
+    
+    // MARK: - Password Management
+
+    func changePassword(currentPassword: String, newPassword: String) async -> Bool {
+        isLoading = true
+        error = nil
+        
+        do {
+            let request = ChangePasswordRequest(
+                currentPassword: currentPassword,
+                newPassword: newPassword
+            )
+            
+            let _: MessageResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.changePassword,
+                method: .POST,
+                body: request
+            )
+            
+            isLoading = false
+            return true
+            
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return false
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return false
+        }
+    }
+    
+    func forgotPassword(email: String) async -> (success: Bool, message: String?) {
+        isLoading = true
+        error = nil
+        
+        do {
+            let request = ForgotPasswordRequest(email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            
+            let response: MessageResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.forgotPassword,
+                method: .POST,
+                body: request
+            )
+            
+            isLoading = false
+            return (true, response.message)
+            
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return (false, apiError.errorDescription)
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return (false, error.localizedDescription)
+        }
+    }
+    
+    func resetPassword(email: String, token: String, newPassword: String) async -> Bool {
+        isLoading = true
+        error = nil
+        
+        do {
+            let request = ResetPasswordRequest(
+                email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                token: token,
+                newPassword: newPassword
+            )
+            
+            let _: MessageResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.resetPassword,
+                method: .POST,
+                body: request
+            )
+            
+            isLoading = false
+            return true
+            
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return false
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return false
+        }
+    }
+    
+    func verifyEmail(email: String, token: String) async -> Bool {
+        isLoading = true
+        error = nil
+        
+        do {
+            let request = VerifyEmailRequest(
+                email: email.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                token: token
+            )
+            
+            let _: MessageResponse = try await networkClient.request(
+                endpoint: Endpoints.Auth.verifyEmail,
+                method: .POST,
+                body: request
+            )
+            
+            // Reload user to get updated email_verified status
+            await loadCurrentUser()
+            
+            isLoading = false
+            return true
+            
+        } catch let apiError as APIError {
+            self.error = apiError
+            isLoading = false
+            return false
+        } catch {
+            self.error = .serverError(statusCode: 0, message: error.localizedDescription)
+            isLoading = false
+            return false
+        }
+    }
 
     // MARK: - Permission Checking
 

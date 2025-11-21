@@ -454,6 +454,10 @@ enum Endpoints {
         case refresh
         case logout
         case profile
+        case changePassword
+        case forgotPassword
+        case resetPassword
+        case verifyEmail
 
         var path: String {
             switch self {
@@ -462,6 +466,10 @@ enum Endpoints {
             case .refresh: return "/auth/refresh"
             case .logout: return "/auth/logout"
             case .profile: return "/auth/profile"
+            case .changePassword: return "/auth/change-password"
+            case .forgotPassword: return "/auth/forgot-password"
+            case .resetPassword: return "/auth/reset-password"
+            case .verifyEmail: return "/auth/verify-email"
             }
         }
     }

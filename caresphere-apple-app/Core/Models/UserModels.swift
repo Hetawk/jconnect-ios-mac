@@ -321,6 +321,35 @@ struct RefreshTokenResponse: Codable {
     let expiresIn: Int?
 }
 
+/// Change password request for authenticated users
+struct ChangePasswordRequest: Codable {
+    let currentPassword: String
+    let newPassword: String
+}
+
+/// Forgot password request to initiate reset flow
+struct ForgotPasswordRequest: Codable {
+    let email: String
+}
+
+/// Reset password with token from email
+struct ResetPasswordRequest: Codable {
+    let email: String
+    let token: String
+    let newPassword: String
+}
+
+/// Verify email with token
+struct VerifyEmailRequest: Codable {
+    let email: String
+    let token: String
+}
+
+/// Generic message response
+struct MessageResponse: Codable {
+    let message: String
+}
+
 struct AuthenticationError: Error, LocalizedError {
     let code: String
     let message: String
