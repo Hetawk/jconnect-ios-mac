@@ -8,6 +8,8 @@ struct DashboardView: View {
     @EnvironmentObject private var analyticsService: AnalyticsService
 
     @State private var isLoading = false
+    @State private var showingAddMember = false
+    @State private var showingComposeMessage = false
 
     var body: some View {
         NavigationView {
@@ -236,7 +238,7 @@ struct DashboardView: View {
                     icon: "person.fill.badge.plus",
                     color: .primary
                 ) {
-                    // Navigate to add member
+                    showingAddMember = true
                 }
 
                 QuickActionCard(
@@ -244,7 +246,7 @@ struct DashboardView: View {
                     icon: "envelope.fill",
                     color: .success
                 ) {
-                    // Navigate to compose message
+                    showingComposeMessage = true
                 }
 
                 QuickActionCard(
@@ -252,7 +254,7 @@ struct DashboardView: View {
                     icon: "chart.bar.fill",
                     color: .secondary
                 ) {
-                    // Navigate to analytics
+                    // Navigate via main tab bar - handled by TabView
                 }
 
                 QuickActionCard(
@@ -260,9 +262,15 @@ struct DashboardView: View {
                     icon: "gearshape.fill",
                     color: .warning
                 ) {
-                    // Navigate to automation
+                    // TODO: Add automation view
                 }
             }
+        }
+        .sheet(isPresented: $showingAddMember) {
+            AddMemberView()
+        }
+        .sheet(isPresented: $showingComposeMessage) {
+            MessageComposerView()
         }
     }
 
@@ -272,8 +280,39 @@ struct DashboardView: View {
         isLoading = true
         defer { isLoading = false }
 
-        // Load dashboard analytics from API
-        await analyticsService.loadDashboardAnalytics()
+        // Load dashboard analytics from API with timeout
+        let success = await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                await self.analyticsService.loadDashboardAnalytics()
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 10_000_000_000)  // 10 seconds
+                return false
+            }
+
+            // Return first completed task
+            if let result = await group.next() {
+                group.cancelAll()
+                return result
+            }
+            return false
+        }
+
+        if !success && analyticsService.dashboardAnalytics == nil {
+            // Set empty analytics to show empty state instead of infinite loading
+            analyticsService.dashboardAnalytics = DashboardAnalytics(
+                totalMembers: 0,
+                activeMembers: 0,
+                newMembersThisMonth: 0,
+                messagesSentThisMonth: 0,
+                averageOpenRate: 0.0,
+                averageClickRate: 0.0,
+                automationRulesActive: 0,
+                recentActivities: [],
+                generatedAt: Date()
+            )
+        }
     }
 }
 

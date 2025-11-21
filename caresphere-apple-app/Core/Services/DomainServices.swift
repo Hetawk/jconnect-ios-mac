@@ -1,7 +1,34 @@
 import Combine
 import Foundation
 
-// MARK: - Authentication Service
+// MARK: - Domain Services
+//
+// This file contains all domain services for the CareSphere application.
+// Each service is a @MainActor class following the singleton pattern.
+//
+// Quick Navigation (⌘+Click on service name or use ⌘+J to jump to MARK):
+// • AuthenticationService  - Lines 1-325    | User authentication, login, permissions
+// • MemberService          - Lines 326-528  | Member CRUD, notes, activities
+// • MessageService         - Lines 529-738  | Messages, templates, sending
+// • SenderSettingsService  - Lines 739-941  | Multi-scope sender settings
+// • AnalyticsService       - Lines 942-1005 | Dashboard analytics, metrics
+// • FieldConfigService     - Lines 1006-end | Dynamic field configurations
+//
+// Architecture: All services share NetworkClient and follow consistent patterns:
+// - Singleton with .shared property
+// - @Published state for SwiftUI reactivity
+// - Error handling with APIError
+// - Preview support for development
+//
+// Note: This file is intentionally kept as one unit to:
+// 1. Share NetworkClient instance efficiently
+// 2. Enable cross-service dependencies (e.g., Member → Auth)
+// 3. Maintain single source of truth for domain logic
+// 4. Simplify imports (one import gets all services)
+
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 1️⃣ Authentication Service (Lines 35-325)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for handling user authentication and session management
 @MainActor
@@ -322,7 +349,9 @@ class AuthenticationService: ObservableObject {
     }()
 }
 
-// MARK: - Member Service
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 2️⃣ Member Service (Lines 326-528)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for member management operations
 @MainActor
@@ -525,7 +554,9 @@ class MemberService: ObservableObject {
     }()
 }
 
-// MARK: - Message Service
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 3️⃣ Message Service (Lines 529-738)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for message management and communication
 @MainActor
@@ -735,7 +766,9 @@ struct SenderSettingRequest: Codable {
     let phone: String?
 }
 
-// MARK: - Sender Settings Service
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 4️⃣ Sender Settings Service (Lines 739-941)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for managing sender settings with multi-scope support
 @MainActor
@@ -938,7 +971,9 @@ class SenderSettingsService: ObservableObject {
     }()
 }
 
-// MARK: - Analytics Service
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 5️⃣ Analytics Service (Lines 942-1005)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for fetching analytics and dashboard metrics
 @MainActor
@@ -1002,7 +1037,9 @@ class AnalyticsService: ObservableObject {
     }()
 }
 
-// MARK: - Field Configuration Service
+// MARK: - ════════════════════════════════════════════════════════════
+// MARK: - 6️⃣ Field Configuration Service (Lines 1006-end)
+// MARK: - ════════════════════════════════════════════════════════════
 
 /// Service for managing field configurations and values
 @MainActor
