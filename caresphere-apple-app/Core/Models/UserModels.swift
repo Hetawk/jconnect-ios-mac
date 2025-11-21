@@ -109,6 +109,7 @@ struct UserPermissions: Codable, Equatable {
     let manageAutomation: Bool
     let manageTemplates: Bool
     let manageOrganization: Bool
+    let manageSettings: Bool
     let exportData: Bool
     let deleteData: Bool
 
@@ -120,6 +121,7 @@ struct UserPermissions: Codable, Equatable {
         manageAutomation: true,
         manageTemplates: true,
         manageOrganization: true,
+        manageSettings: true,
         exportData: true,
         deleteData: true
     )
@@ -132,6 +134,7 @@ struct UserPermissions: Codable, Equatable {
         manageAutomation: true,
         manageTemplates: true,
         manageOrganization: false,
+        manageSettings: true,
         exportData: true,
         deleteData: true
     )
@@ -144,6 +147,7 @@ struct UserPermissions: Codable, Equatable {
         manageAutomation: true,
         manageTemplates: true,
         manageOrganization: false,
+        manageSettings: false,
         exportData: false,
         deleteData: false
     )
@@ -156,6 +160,7 @@ struct UserPermissions: Codable, Equatable {
         manageAutomation: false,
         manageTemplates: true,
         manageOrganization: false,
+        manageSettings: false,
         exportData: false,
         deleteData: false
     )
@@ -168,6 +173,7 @@ struct UserPermissions: Codable, Equatable {
         manageAutomation: false,
         manageTemplates: false,
         manageOrganization: false,
+        manageSettings: false,
         exportData: false,
         deleteData: false
     )

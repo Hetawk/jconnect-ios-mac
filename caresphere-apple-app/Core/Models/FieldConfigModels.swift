@@ -51,7 +51,7 @@ struct FieldConfig: Codable, Identifiable {
     let groupName: String?
     let createdAt: String
     let updatedAt: String
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case organizationId = "organization_id"
@@ -101,7 +101,7 @@ struct FieldConfigCreate: Codable {
     let displayOrder: Int
     let defaultValue: String?
     let groupName: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case entityType = "entity_type"
         case fieldKey = "field_key"
@@ -133,7 +133,7 @@ struct FieldConfigUpdate: Codable {
     let displayOrder: Int?
     let defaultValue: String?
     let groupName: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case fieldLabel = "field_label"
         case fieldType = "field_type"
@@ -155,7 +155,7 @@ struct BulkFieldValuesUpdate: Codable {
     let entityType: EntityType
     let entityId: String
     let values: [String: AnyCodable]
-    
+
     enum CodingKeys: String, CodingKey {
         case entityType = "entity_type"
         case entityId = "entity_id"
@@ -166,14 +166,14 @@ struct BulkFieldValuesUpdate: Codable {
 // MARK: - AnyCodable Helper
 struct AnyCodable: Codable {
     let value: Any
-    
+
     init(_ value: Any) {
         self.value = value
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if container.decodeNil() {
             value = NSNull()
         } else if let bool = try? container.decode(Bool.self) {
@@ -189,13 +189,14 @@ struct AnyCodable: Codable {
         } else if let dictionary = try? container.decode([String: AnyCodable].self) {
             value = dictionary.mapValues { $0.value }
         } else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported type")
+            throw DecodingError.dataCorruptedError(
+                in: container, debugDescription: "Unsupported type")
         }
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        
+
         if value is NSNull {
             try container.encodeNil()
         } else if let bool = value as? Bool {
@@ -211,7 +212,10 @@ struct AnyCodable: Codable {
         } else if let dictionary = value as? [String: Any] {
             try container.encode(dictionary.mapValues { AnyCodable($0) })
         } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
+            throw EncodingError.invalidValue(
+                value,
+                EncodingError.Context(
+                    codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
         }
     }
 }
@@ -226,15 +230,18 @@ extension Array where Element == FieldConfig {
     /// Group field configurations by their group name
     func grouped() -> [GroupedFieldConfigs] {
         let grouped = Dictionary(grouping: self) { $0.groupName }
-        return grouped.map { GroupedFieldConfigs(groupName: $0.key, configs: $0.value.sorted { $0.displayOrder < $1.displayOrder }) }
-            .sorted { (lhs, rhs) in
-                // Sort groups: named groups first (alphabetically), then ungrouped
-                switch (lhs.groupName, rhs.groupName) {
-                case (nil, nil): return false
-                case (nil, _): return false
-                case (_, nil): return true
-                case let (l?, r?): return l < r
-                }
+        return grouped.map {
+            GroupedFieldConfigs(
+                groupName: $0.key, configs: $0.value.sorted { $0.displayOrder < $1.displayOrder })
+        }
+        .sorted { (lhs, rhs) in
+            // Sort groups: named groups first (alphabetically), then ungrouped
+            switch (lhs.groupName, rhs.groupName) {
+            case (nil, nil): return false
+            case (nil, _): return false
+            case (_, nil): return true
+            case (let l?, let r?): return l < r
             }
+        }
     }
 }

@@ -1008,33 +1008,33 @@ class AnalyticsService: ObservableObject {
 @MainActor
 class FieldConfigService: ObservableObject {
     @MainActor static let shared = FieldConfigService()
-    
+
     @Published var memberConfigs: [FieldConfig] = []
     @Published var isLoading = false
     @Published var error: APIError?
-    
+
     private let networkClient: NetworkClient
     private var authService: AuthenticationService {
         return AuthenticationService.shared
     }
-    
+
     private init() {
         self.networkClient = NetworkClient.shared
     }
-    
+
     // MARK: - Field Configuration Operations
-    
+
     /// Load field configurations for a specific entity type
     func loadConfigs(for entityType: EntityType) async throws {
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         let response: FieldConfigsResponse = try await networkClient.request(
             endpoint: Endpoints.Fields.configs(entityType: entityType.rawValue),
             method: .GET
         )
-        
+
         switch entityType {
         case .member:
             memberConfigs = response.configs
@@ -1042,101 +1042,106 @@ class FieldConfigService: ObservableObject {
             break
         }
     }
-    
+
     /// Get field configurations and values for a specific entity instance
-    func getEntityFields(entityType: EntityType, entityId: String) async throws -> EntityFieldsResponse {
+    func getEntityFields(entityType: EntityType, entityId: String) async throws
+        -> EntityFieldsResponse
+    {
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         return try await networkClient.request(
-            endpoint: Endpoints.Fields.entityFields(entityType: entityType.rawValue, entityId: entityId),
+            endpoint: Endpoints.Fields.entityFields(
+                entityType: entityType.rawValue, entityId: entityId),
             method: .GET
         )
     }
-    
+
     /// Save field values for an entity
-    func saveEntityFields(entityType: EntityType, entityId: String, values: [String: Any]) async throws {
+    func saveEntityFields(entityType: EntityType, entityId: String, values: [String: Any])
+        async throws
+    {
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         let request = BulkFieldValuesUpdate(
             entityType: entityType,
             entityId: entityId,
             values: values.mapValues { AnyCodable($0) }
         )
-        
+
         let _: EntityFieldsResponse = try await networkClient.request(
             endpoint: Endpoints.Fields.saveValues,
             method: .POST,
             body: request
         )
     }
-    
+
     /// Initialize default member field configurations
     func initializeDefaultMemberFields() async throws {
         try authService.requiresPermission(\.manageSettings)
-        
+
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         let _: MessageResponse = try await networkClient.request(
             endpoint: Endpoints.Fields.initializeMembers,
             method: .POST
         )
-        
+
         // Reload member configs after initialization
         try await loadConfigs(for: .member)
     }
-    
+
     /// Create a new field configuration
     func createConfig(_ config: FieldConfigCreate) async throws -> FieldConfig {
         try authService.requiresPermission(\.manageSettings)
-        
+
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         return try await networkClient.request(
             endpoint: Endpoints.Fields.createConfig,
             method: .POST,
             body: config
         )
     }
-    
+
     /// Update a field configuration
     func updateConfig(id: String, update: FieldConfigUpdate) async throws -> FieldConfig {
         try authService.requiresPermission(\.manageSettings)
-        
+
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         return try await networkClient.request(
             endpoint: Endpoints.Fields.updateConfig(id: id),
             method: .PUT,
             body: update
         )
     }
-    
+
     /// Delete a field configuration
     func deleteConfig(id: String) async throws {
         try authService.requiresPermission(\.manageSettings)
-        
+
         isLoading = true
         error = nil
         defer { isLoading = false }
-        
+
         let _: MessageResponse = try await networkClient.request(
             endpoint: Endpoints.Fields.deleteConfig(id: id),
             method: .DELETE
         )
     }
-    
+
     // MARK: - Convenience Methods
-    
+
     /// Get grouped field configurations for easier UI rendering
     func getGroupedConfigs(for entityType: EntityType) -> [GroupedFieldConfigs] {
         switch entityType {
@@ -1146,15 +1151,15 @@ class FieldConfigService: ObservableObject {
             return []
         }
     }
-    
+
     /// Clear cached configurations
     func clearCache() {
         memberConfigs = []
         error = nil
     }
-    
+
     // MARK: - Preview Extension
-    
+
     static let preview: FieldConfigService = {
         let service = FieldConfigService.shared
         Task { @MainActor in

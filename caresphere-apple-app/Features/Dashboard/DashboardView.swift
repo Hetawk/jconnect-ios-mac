@@ -166,7 +166,8 @@ struct DashboardView: View {
             .padding(.horizontal, CareSphereSpacing.sm)
 
             if let analytics = analyticsService.dashboardAnalytics,
-               !analytics.recentActivities.isEmpty {
+                !analytics.recentActivities.isEmpty
+            {
                 CareSphereCard {
                     VStack(spacing: CareSphereSpacing.md) {
                         ForEach(analytics.recentActivities) { activity in
@@ -432,6 +433,4 @@ struct QuickActionCard: View {
         .environmentObject(AuthenticationService.preview)
         .environmentObject(SenderSettingsService.shared)
         .environmentObject(AnalyticsService.preview)
-}
-
 }

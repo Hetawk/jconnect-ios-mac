@@ -620,7 +620,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Field Configurations
     enum Fields: APIEndpoint {
         case configs(entityType: String?)
@@ -631,7 +631,7 @@ enum Endpoints {
         case entityFields(entityType: String, entityId: String)
         case saveValues
         case initializeMembers
-        
+
         var path: String {
             switch self {
             case .configs(let entityType):
