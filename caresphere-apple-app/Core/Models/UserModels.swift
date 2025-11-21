@@ -15,7 +15,7 @@ struct User: Codable, Identifiable, Equatable {
     let lastLoginAt: String?
     let createdAt: String
     let updatedAt: String
-    
+
     enum CodingKeys: String, CodingKey {
         case id, email, role, status
         case fullName = "full_name"
@@ -26,18 +26,18 @@ struct User: Codable, Identifiable, Equatable {
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
-    
+
     // Computed properties for backward compatibility
     var firstName: String {
         let components = fullName.split(separator: " ")
         return components.first.map(String.init) ?? fullName
     }
-    
+
     var lastName: String {
         let components = fullName.split(separator: " ")
         return components.count > 1 ? components.dropFirst().joined(separator: " ") : ""
     }
-    
+
     var effectiveDisplayName: String {
         return displayName ?? fullName
     }
@@ -48,7 +48,7 @@ enum UserStatus: String, Codable, CaseIterable {
     case active = "active"
     case inactive = "inactive"
     case suspended = "suspended"
-    
+
     var displayName: String {
         switch self {
         case .active:
@@ -68,7 +68,7 @@ enum UserRole: String, Codable, CaseIterable {
     case ministryLeader = "ministry_leader"
     case volunteer = "volunteer"
     case member = "member"
-    
+
     var displayName: String {
         switch self {
         case .superAdmin:
@@ -83,7 +83,7 @@ enum UserRole: String, Codable, CaseIterable {
             return "Member"
         }
     }
-    
+
     var permissions: UserPermissions {
         switch self {
         case .superAdmin:
@@ -111,7 +111,7 @@ struct UserPermissions: Codable, Equatable {
     let manageOrganization: Bool
     let exportData: Bool
     let deleteData: Bool
-    
+
     static let all = UserPermissions(
         manageUsers: true,
         manageMembers: true,
@@ -123,7 +123,7 @@ struct UserPermissions: Codable, Equatable {
         exportData: true,
         deleteData: true
     )
-    
+
     static let admin = UserPermissions(
         manageUsers: true,
         manageMembers: true,
@@ -135,7 +135,7 @@ struct UserPermissions: Codable, Equatable {
         exportData: true,
         deleteData: true
     )
-    
+
     static let ministryLeader = UserPermissions(
         manageUsers: false,
         manageMembers: true,
@@ -147,7 +147,7 @@ struct UserPermissions: Codable, Equatable {
         exportData: false,
         deleteData: false
     )
-    
+
     static let volunteer = UserPermissions(
         manageUsers: false,
         manageMembers: false,
@@ -159,7 +159,7 @@ struct UserPermissions: Codable, Equatable {
         exportData: false,
         deleteData: false
     )
-    
+
     static let member = UserPermissions(
         manageUsers: false,
         manageMembers: false,
@@ -231,7 +231,7 @@ enum DigestFrequency: String, Codable, CaseIterable {
 
 struct QuietHours: Codable, Equatable {
     let startTime: String  // HH:mm format
-    let endTime: String    // HH:mm format
+    let endTime: String  // HH:mm format
     let timeZone: String
 }
 
@@ -241,11 +241,11 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
     case starter = "starter"
     case professional = "professional"
     case enterprise = "enterprise"
-    
+
     var displayName: String {
         return rawValue.capitalized
     }
-    
+
     var maxUsers: Int {
         switch self {
         case .free:
@@ -258,7 +258,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
             return Int.max
         }
     }
-    
+
     var maxMembers: Int {
         switch self {
         case .free:
@@ -353,26 +353,26 @@ struct MessageResponse: Codable {
 struct AuthenticationError: Error, LocalizedError {
     let code: String
     let message: String
-    
+
     var errorDescription: String? {
         return message
     }
-    
+
     static let invalidCredentials = AuthenticationError(
         code: "INVALID_CREDENTIALS",
         message: "Invalid email or password"
     )
-    
+
     static let userNotFound = AuthenticationError(
         code: "USER_NOT_FOUND",
         message: "User not found"
     )
-    
+
     static let userInactive = AuthenticationError(
         code: "USER_INACTIVE",
         message: "Account is inactive"
     )
-    
+
     static let organizationInactive = AuthenticationError(
         code: "ORGANIZATION_INACTIVE",
         message: "Organization is inactive"

@@ -5,6 +5,7 @@ struct DashboardView: View {
     @EnvironmentObject private var theme: CareSphereTheme
     @EnvironmentObject private var authService: AuthenticationService
     @EnvironmentObject private var settingsService: SenderSettingsService
+    @EnvironmentObject private var analyticsService: AnalyticsService
 
     @State private var isLoading = false
 
@@ -86,37 +87,64 @@ struct DashboardView: View {
                 .foregroundColor(theme.colors.onBackground)
                 .padding(.horizontal, CareSphereSpacing.sm)
 
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible()), count: 2),
-                spacing: CareSphereSpacing.md
-            ) {
-                StatCard(
-                    title: "Total Members",
-                    value: "156",
-                    icon: "person.3.fill",
-                    color: .primary
-                )
+            if let analytics = analyticsService.dashboardAnalytics {
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible()), count: 2),
+                    spacing: CareSphereSpacing.md
+                ) {
+                    StatCard(
+                        title: "Total Members",
+                        value: "\(analytics.totalMembers)",
+                        icon: "person.3.fill",
+                        color: .primary
+                    )
 
-                StatCard(
-                    title: "Messages Sent",
-                    value: "89",
-                    icon: "envelope.fill",
-                    color: .success
-                )
+                    StatCard(
+                        title: "Messages Sent",
+                        value: "\(analytics.messagesSentThisMonth)",
+                        icon: "envelope.fill",
+                        color: .success
+                    )
 
-                StatCard(
-                    title: "Active Members",
-                    value: "134",
-                    icon: "person.fill.checkmark",
-                    color: .secondary
-                )
+                    StatCard(
+                        title: "Active Members",
+                        value: "\(analytics.activeMembers)",
+                        icon: "person.fill.checkmark",
+                        color: .secondary
+                    )
 
-                StatCard(
-                    title: "Need Follow-up",
-                    value: "8",
-                    icon: "exclamationmark.circle.fill",
-                    color: .warning
-                )
+                    StatCard(
+                        title: "New This Month",
+                        value: "\(analytics.newMembersThisMonth)",
+                        icon: "person.fill.badge.plus",
+                        color: .warning
+                    )
+                }
+            } else {
+                // Loading placeholder
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible()), count: 2),
+                    spacing: CareSphereSpacing.md
+                ) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        CareSphereCard(padding: CareSphereSpacing.md) {
+                            VStack(alignment: .leading, spacing: CareSphereSpacing.sm) {
+                                HStack {
+                                    Circle()
+                                        .fill(theme.colors.onSurface.opacity(0.1))
+                                        .frame(width: 24, height: 24)
+                                    Spacer()
+                                }
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(theme.colors.onSurface.opacity(0.1))
+                                    .frame(height: 28)
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(theme.colors.onSurface.opacity(0.1))
+                                    .frame(height: 16)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -124,7 +152,7 @@ struct DashboardView: View {
     private var recentActivitiesSection: some View {
         VStack(alignment: .leading, spacing: CareSphereSpacing.md) {
             HStack {
-                Text("Recent Activities")
+                Text("Activity Summary")
                     .font(CareSphereTypography.titleMedium)
                     .foregroundColor(theme.colors.onBackground)
 
@@ -137,16 +165,55 @@ struct DashboardView: View {
             }
             .padding(.horizontal, CareSphereSpacing.sm)
 
-            CareSphereCard {
-                VStack(spacing: CareSphereSpacing.md) {
-                    ForEach(sampleActivities, id: \.id) { activity in
-                        ActivityRow(activity: activity)
+            if let analytics = analyticsService.dashboardAnalytics,
+               !analytics.recentActivities.isEmpty {
+                CareSphereCard {
+                    VStack(spacing: CareSphereSpacing.md) {
+                        ForEach(analytics.recentActivities) { activity in
+                            ActivityMetricRow(activityMetric: activity)
 
-                        if activity.id != sampleActivities.last?.id {
-                            Divider()
-                                .background(CareSphereColors.borderLight)
+                            if activity.id != analytics.recentActivities.last?.id {
+                                Divider()
+                                    .background(CareSphereColors.borderLight)
+                            }
                         }
                     }
+                }
+            } else if analyticsService.isLoading {
+                CareSphereCard {
+                    VStack(spacing: CareSphereSpacing.md) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            HStack(spacing: CareSphereSpacing.md) {
+                                Circle()
+                                    .fill(theme.colors.onSurface.opacity(0.1))
+                                    .frame(width: 24, height: 24)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(theme.colors.onSurface.opacity(0.1))
+                                        .frame(height: 16)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(theme.colors.onSurface.opacity(0.1))
+                                        .frame(width: 120, height: 14)
+                                }
+
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+            } else {
+                CareSphereCard {
+                    VStack(spacing: CareSphereSpacing.sm) {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.title)
+                            .foregroundColor(theme.colors.onSurface.opacity(0.3))
+                        Text("No activity data yet")
+                            .font(CareSphereTypography.bodyMedium)
+                            .foregroundColor(theme.colors.onSurface.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, CareSphereSpacing.md)
                 }
             }
         }
@@ -204,10 +271,8 @@ struct DashboardView: View {
         isLoading = true
         defer { isLoading = false }
 
-        // Simulate loading dashboard metrics
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        
-        // TODO: Load real dashboard data
+        // Load dashboard analytics from API
+        await analyticsService.loadDashboardAnalytics()
     }
 }
 
@@ -251,7 +316,7 @@ struct ActivityRow: View {
         HStack(spacing: CareSphereSpacing.md) {
             Image(systemName: activity.icon)
                 .font(.title3)
-                .foregroundColor(activity.color.color(in: theme))
+                .foregroundColor(theme.colors.primary)
                 .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -269,6 +334,67 @@ struct ActivityRow: View {
             Text(activity.timeAgo)
                 .font(CareSphereTypography.caption)
                 .foregroundColor(theme.colors.onSurface.opacity(0.6))
+        }
+    }
+}
+
+struct ActivityMetricRow: View {
+    @EnvironmentObject private var theme: CareSphereTheme
+    let activityMetric: ActivityMetric
+
+    var body: some View {
+        HStack(spacing: CareSphereSpacing.md) {
+            Image(systemName: iconForActivity(activityMetric.label))
+                .font(.title3)
+                .foregroundColor(colorForActivity(activityMetric.label))
+                .frame(width: 24, height: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(activityMetric.label)
+                    .font(CareSphereTypography.bodyMedium)
+                    .foregroundColor(theme.colors.onBackground)
+
+                Text("\(activityMetric.value) occurrences")
+                    .font(CareSphereTypography.bodySmall)
+                    .foregroundColor(theme.colors.onSurface.opacity(0.7))
+            }
+
+            Spacer()
+
+            Text("\(activityMetric.value)")
+                .font(CareSphereTypography.titleSmall)
+                .foregroundColor(theme.colors.primary)
+                .fontWeight(.semibold)
+        }
+    }
+
+    private func iconForActivity(_ label: String) -> String {
+        let lowercased = label.lowercased()
+        if lowercased.contains("member") && lowercased.contains("added") {
+            return "person.fill.badge.plus"
+        } else if lowercased.contains("message") {
+            return "envelope.fill"
+        } else if lowercased.contains("note") {
+            return "note.text"
+        } else if lowercased.contains("automation") {
+            return "gearshape.fill"
+        } else {
+            return "circle.fill"
+        }
+    }
+
+    private func colorForActivity(_ label: String) -> Color {
+        let lowercased = label.lowercased()
+        if lowercased.contains("member") && lowercased.contains("added") {
+            return theme.colors.success
+        } else if lowercased.contains("message") {
+            return theme.colors.primary
+        } else if lowercased.contains("note") {
+            return theme.colors.secondary
+        } else if lowercased.contains("automation") {
+            return theme.colors.warning
+        } else {
+            return theme.colors.tertiary
         }
     }
 }
@@ -300,51 +426,12 @@ struct QuickActionCard: View {
     }
 }
 
-// MARK: - Sample Data
-
-struct ActivityItem {
-    let id = UUID()
-    let title: String
-    let subtitle: String
-    let icon: String
-    let color: CareSphereStatusBadge.StatusColor
-    let timeAgo: String
-}
-
-private let sampleActivities = [
-    ActivityItem(
-        title: "New member added",
-        subtitle: "Sarah Johnson joined the community",
-        icon: "person.fill.badge.plus",
-        color: .success,
-        timeAgo: "2h ago"
-    ),
-    ActivityItem(
-        title: "Message sent",
-        subtitle: "Birthday reminder to 12 members",
-        icon: "envelope.fill",
-        color: .primary,
-        timeAgo: "4h ago"
-    ),
-    ActivityItem(
-        title: "Follow-up needed",
-        subtitle: "John Smith requires pastoral care",
-        icon: "exclamationmark.circle.fill",
-        color: .warning,
-        timeAgo: "6h ago"
-    ),
-    ActivityItem(
-        title: "Automation triggered",
-        subtitle: "Welcome sequence for new members",
-        icon: "gearshape.fill",
-        color: .secondary,
-        timeAgo: "8h ago"
-    ),
-]
-
 #Preview {
     DashboardView()
         .environmentObject(CareSphereTheme.shared)
         .environmentObject(AuthenticationService.preview)
         .environmentObject(SenderSettingsService.shared)
+        .environmentObject(AnalyticsService.preview)
+}
+
 }

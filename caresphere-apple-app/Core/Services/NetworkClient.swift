@@ -585,7 +585,7 @@ enum Endpoints {
             }
         }
     }
-    
+
     // Settings
     enum Settings: APIEndpoint {
         case senderResolved
@@ -617,6 +617,43 @@ enum Endpoints {
                 var path = "/settings/senders?scope=\(scope)"
                 if let referenceId = referenceId { path += "&reference_id=\(referenceId)" }
                 return path
+            }
+        }
+    }
+    
+    // Field Configurations
+    enum Fields: APIEndpoint {
+        case configs(entityType: String?)
+        case getConfig(id: String)
+        case createConfig
+        case updateConfig(id: String)
+        case deleteConfig(id: String)
+        case entityFields(entityType: String, entityId: String)
+        case saveValues
+        case initializeMembers
+        
+        var path: String {
+            switch self {
+            case .configs(let entityType):
+                var path = "/fields/configs"
+                if let entityType = entityType {
+                    path += "?entity_type=\(entityType)"
+                }
+                return path
+            case .getConfig(let id):
+                return "/fields/configs/\(id)"
+            case .createConfig:
+                return "/fields/configs"
+            case .updateConfig(let id):
+                return "/fields/configs/\(id)"
+            case .deleteConfig(let id):
+                return "/fields/configs/\(id)"
+            case .entityFields(let entityType, let entityId):
+                return "/fields/entities/\(entityType)/\(entityId)"
+            case .saveValues:
+                return "/fields/entities/values"
+            case .initializeMembers:
+                return "/fields/initialize/members"
             }
         }
     }
